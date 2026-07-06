@@ -33,8 +33,9 @@ export default function GeneratorTab(props) {
   const [chromeStatus, setChromeStatus] = useState({ text: 'Launch Chrome and sign into Azure DevOps.', cls: '' });
   const [parseStatus, setParseStatus] = useState('');
   const [parseStatusClass, setParseStatusClass] = useState('');
+  const [agentMode, setAgentMode] = useState('regular');
 
-  const handleInputReady = async (text) => {
+  const handleInputReady = async (text, mode) => {
     setAgentsRunning(true);
     setAgentLogs([]);
     setJsonOutput('');
@@ -59,6 +60,7 @@ export default function GeneratorTab(props) {
           input: text,
           provider: provider.id,
           providerConfig: provider.config || {},
+          mode: mode || agentMode,
         }),
       });
 
@@ -139,8 +141,10 @@ export default function GeneratorTab(props) {
     }
   };
 
+  const stripFences = (s) => s.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
   const handleParse = (json) => {
-    const raw = (json || jsonOutput).trim();
+    const raw = stripFences(json || jsonOutput);
     if (!raw) {
       setParsedScenarios([]);
       setParseStatus('Paste or generate JSON above, then click Parse & Validate.');
@@ -178,6 +182,8 @@ export default function GeneratorTab(props) {
         providerName={providerName}
         pipelineStage={pipelineStage}
         onSwitchToSettings={props.onSwitchToSettings}
+        agentMode={agentMode}
+        onAgentModeChange={setAgentMode}
       />
 
       <AgentResults

@@ -327,9 +327,10 @@ app.post("/api/parse/document", upload.single("file"), async (req, res) => {
     const ext = path.extname(req.file.originalname).toLowerCase();
     let text = "";
     if (ext === ".pdf") {
-      const pdfParse = require("pdf-parse");
-      const data = await pdfParse(req.file.buffer);
-      text = data.text;
+      const { PDFParse } = require("pdf-parse");
+      const parser = new PDFParse({ data: req.file.buffer });
+      const result = await parser.getText();
+      text = result.text;
     } else if (ext === ".docx") {
       const mammoth = require("mammoth");
       const data = await mammoth.extractRawText({ buffer: req.file.buffer });
@@ -379,12 +380,13 @@ app.post("/api/ado/fetch-work-item", async (req, res) => {
 // ─── Agents ───────────────────────────────────────────────────────────────────
 
 app.get("/api/agents", (req, res) => {
-  const agents = loadAgentPrompts();
+  const mode = req.query.mode || "regular";
+  const agents = loadAgentPrompts(mode);
   res.json({ agents: agents.map((a) => ({ id: a.id, name: a.name })) });
 });
 
 app.post("/api/agents/run", async (req, res) => {
-  const { input, provider: providerId = "ollama", providerConfig = {} } = req.body || {};
+  const { input, provider: providerId = "ollama", providerConfig = {}, mode = "regular" } = req.body || {};
   if (!input || !input.trim()) {
     return res.status(400).json({ error: "Input text is required." });
   }
@@ -406,6 +408,7 @@ app.post("/api/agents/run", async (req, res) => {
   await runAgentPipeline({
     send,
     userInput: input,
+    mode,
     callLlm: async ({ systemPrompt, userMessage, onChunk, onDone, onError }) => {
       await provider.generate({
         systemPrompt: systemPrompt || "",

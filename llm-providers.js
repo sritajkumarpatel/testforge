@@ -1,5 +1,8 @@
 "use strict";
 
+const fs = require("fs");
+const path = require("path");
+
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_DEFAULT_MODEL = process.env.OLLAMA_MODEL || "llama3.2";
 
@@ -321,6 +324,11 @@ function registerLlmRoutes(app) {
   const providers = PROVIDERS;
 
   app.get("/api/config", (req, res) => {
+    let envExample = "";
+    try {
+      envExample = fs.readFileSync(path.join(__dirname, ".env.example"), "utf-8");
+    } catch {}
+
     res.json({
       org: process.env.ADO_ORG || "",
       project: process.env.ADO_PROJECT || "",
@@ -330,8 +338,29 @@ function registerLlmRoutes(app) {
         name: p.name,
         defaultModel: p.defaultModel,
         models: p.models,
-        configFields: p.configFields,
+        configFields: p.configFields.map((f) => ({
+          ...f,
+          envValue: f.defaultValue,
+        })),
       })),
+      env: {
+        PORT: process.env.PORT || "3010",
+        ADO_ORG: process.env.ADO_ORG || "",
+        ADO_PROJECT: process.env.ADO_PROJECT || "",
+        CHROME_PATH: process.env.CHROME_PATH || "",
+        OLLAMA_URL: process.env.OLLAMA_URL || "http://localhost:11434",
+        OLLAMA_MODEL: process.env.OLLAMA_MODEL || "llama3.2",
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY ? "•••••• (set)" : "",
+        OPENAI_MODEL: process.env.OPENAI_MODEL || "gpt-4o",
+        CLAUDE_API_KEY: process.env.CLAUDE_API_KEY ? "•••••• (set)" : "",
+        CLAUDE_MODEL: process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514",
+        GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ? "•••••• (set)" : "",
+        GOOGLE_MODEL: process.env.GOOGLE_MODEL || "gemini-2.0-flash",
+        OPENCODE_API_KEY: process.env.OPENCODE_API_KEY ? "•••••• (set)" : "",
+        OPENCODE_URL: process.env.OPENCODE_URL || "",
+        OPENCODE_MODEL: process.env.OPENCODE_MODEL || "deepseek-v4-flash-free",
+      },
+      envExample,
     });
   });
 

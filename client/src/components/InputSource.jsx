@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 
 const FILE_TYPES = '.txt,.md,.pdf,.docx,.csv,.json,.xml,.yaml,.yml,.html,.js,.ts,.tsx,.jsx,.py,.cs,.java,.sql,.feature';
 
-export default function InputSource({ config, onInputReady, providerName, pipelineStage, onSwitchToSettings }) {
+export default function InputSource({ config, onInputReady, providerName, pipelineStage, onSwitchToSettings, agentMode = 'regular', onAgentModeChange }) {
   const [tab, setTab] = useState('file');
   const [rawText, setRawText] = useState('');
   const [fileName, setFileName] = useState('');
@@ -75,7 +75,7 @@ export default function InputSource({ config, onInputReady, providerName, pipeli
 
   const handleRun = () => {
     if (!rawText.trim()) { setStatus('Load or paste requirements first.'); setStatusClass('err'); return; }
-    onInputReady(rawText);
+    onInputReady(rawText, agentMode);
   };
 
   return (
@@ -159,6 +159,16 @@ export default function InputSource({ config, onInputReady, providerName, pipeli
         )}
 
         <div className="action-bar">
+          <div className="ado-mode-toggle">
+            <label className={`ado-radio-label${agentMode === 'regular' ? ' active' : ''}`} onClick={() => onAgentModeChange?.('regular')}>
+              <span className="material-icons">checklist</span>
+              Regular
+            </label>
+            <label className={`ado-radio-label${agentMode === 'bdd' ? ' active' : ''}`} onClick={() => onAgentModeChange?.('bdd')}>
+              <span className="material-icons">featured_play_list</span>
+              BDD
+            </label>
+          </div>
           <button className="btn btn-primary btn-lg" onClick={handleRun} disabled={loading || !rawText.trim()}>
             <span className="material-icons">smart_toy</span>
             Run Agents

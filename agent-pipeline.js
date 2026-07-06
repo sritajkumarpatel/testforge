@@ -5,28 +5,44 @@ const path = require("path");
 
 const AGENTS_DIR = path.join(__dirname, "agents");
 
-const AGENT_FILES = [
-  "01-requirements-analyst.md",
-  "02-test-designer.md",
-  "03-test-case-writer.md",
-];
+const AGENT_FILES = {
+  regular: [
+    "01-requirements-analyst.md",
+    "02-test-designer.md",
+    "03-test-case-writer.md",
+  ],
+  bdd: [
+    "01-requirements-analyst.md",
+    "02-test-designer-bdd.md",
+    "03-test-case-writer.md",
+  ],
+};
 
-const AGENT_LABELS = [
-  "Requirements Analyst",
-  "Test Designer",
-  "Test Case Writer",
-];
+const AGENT_LABELS = {
+  regular: [
+    "Requirements Analyst",
+    "Test Designer",
+    "Test Case Writer",
+  ],
+  bdd: [
+    "Requirements Analyst",
+    "Test Designer (BDD)",
+    "Test Case Writer",
+  ],
+};
 
-function loadAgentPrompts() {
-  const agents = AGENT_FILES.map((file, i) => {
+function loadAgentPrompts(mode = "regular") {
+  const files = AGENT_FILES[mode] || AGENT_FILES.regular;
+  const labels = AGENT_LABELS[mode] || AGENT_LABELS.regular;
+  const agents = files.map((file, i) => {
     const fullPath = path.join(AGENTS_DIR, file);
     let content = "";
     try {
       content = fs.readFileSync(fullPath, "utf-8");
     } catch {
-      content = `# ${AGENT_LABELS[i]}\n\n(Agent file not found)`;
+      content = `# ${labels[i]}\n\n(Agent file not found)`;
     }
-    return { id: i, name: AGENT_LABELS[i], file, prompt: content };
+    return { id: i, name: labels[i], file, prompt: content };
   });
   return agents;
 }
@@ -34,8 +50,8 @@ function loadAgentPrompts() {
 // Run the full 3-agent pipeline, streaming events via `send`.
 // Each agent call is a separate LLM generate call.
 // The output of agent N is appended to the input of agent N+1.
-async function runAgentPipeline({ send, userInput, callLlm }) {
-  const agents = loadAgentPrompts();
+async function runAgentPipeline({ send, userInput, callLlm, mode = "regular" }) {
+  const agents = loadAgentPrompts(mode);
 
   let previousOutput = "";
 
