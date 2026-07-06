@@ -1,0 +1,354 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════╗
+  ║   ADO Test Case Helper                                                  ║
+  ║   © 2026 Sritaj Kumar Patel. All rights reserved.                       ║
+  ║   ⚡ Vibecoded with GitHub Copilot & Claude — no bugs were harmed        ║
+  ╚══════════════════════════════════════════════════════════════════════════╝
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADO Test Case Helper</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="ado.css" />
+    <style>
+      body { background: #fafafa; }
+      .app-footer-inner { display: flex; align-items: center; gap: 10px; padding: 14px 24px; background: #00695c; border-radius: 0; box-shadow: 0 -2px 4px rgba(0, 105, 92, 0.15); }
+      .app-footer-copy { font-family: var(--font-heading); font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, 0.85); white-space: nowrap; }
+      .app-footer-sep { width: 1px; height: 14px; background: rgba(255, 255, 255, 0.3); border-radius: 1px; flex-shrink: 0; }
+      .app-footer-vibe { font-family: var(--font-heading); font-size: 12px; color: rgba(255, 255, 255, 0.7); flex: 1; }
+      .app-footer-version { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: rgba(255, 255, 255, 0.55); letter-spacing: 0.5px; white-space: nowrap; background: rgba(0, 0, 0, 0.15); padding: 2px 8px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="header-bar">
+      <div class="header-bar-inner">
+        <h1>ADO Test Case Helper</h1>
+        <span class="header-subtitle">Generate · Create</span>
+        <div class="header-actions">
+          <button class="btn btn-outline btn-sm" style="border-color: rgba(255,255,255,0.35); color: #fff; background: rgba(255,255,255,0.1);" onclick="AdoApp.clearAll()">Clear All</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-wrap">
+      <div class="ado-content-wrap">
+
+        <!-- Tab navigation -->
+        <div class="app-tabs">
+          <button class="app-tab active" data-tab="generator" onclick="AdoApp.switchAppTab('generator')">
+            <span class="material-icons">auto_awesome</span>
+            Generator
+          </button>
+          <button class="app-tab" data-tab="settings" onclick="AdoApp.switchAppTab('settings')">
+            <span class="material-icons">settings</span>
+            Settings
+          </button>
+        </div>
+
+        <!-- ══════════ GENERATOR TAB ══════════ -->
+        <div id="appTabGenerator" class="app-tab-panel">
+
+          <!-- Pipeline stepper (4 stages) -->
+          <div class="pipeline" id="pipeline">
+            <div class="pipeline-step pending" data-pipeline="plan" onclick="AdoApp.scrollTo('aiTabBtnPlan')">
+              <div class="pipeline-circle"><span>1</span></div>
+              <div class="pipeline-label">Plan</div>
+            </div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step pending" data-pipeline="generate" onclick="AdoApp.scrollTo('adoScenariosInput')">
+              <div class="pipeline-circle"><span>2</span></div>
+              <div class="pipeline-label">Generate</div>
+            </div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step pending" data-pipeline="create" onclick="AdoApp.scrollTo('adoCreateCard')">
+              <div class="pipeline-circle"><span>3</span></div>
+              <div class="pipeline-label">Create</div>
+            </div>
+            <div class="pipeline-connector"></div>
+            <div class="pipeline-step pending" data-pipeline="results" onclick="AdoApp.scrollTo('adoLogResultsCard')">
+              <div class="pipeline-circle"><span>4</span></div>
+              <div class="pipeline-label">Results</div>
+            </div>
+          </div>
+
+          <!-- Step 1: Plan -->
+          <div class="card card-emphasis step-card" id="adoPlanCard">
+            <div class="ado-card-header" style="flex-wrap: wrap; gap: 6px;">
+              <span class="ado-card-title">
+                <span class="material-icons">edit_note</span>
+                Step 1: Plan Test Scenarios
+              </span>
+              <span id="planBadge" class="section-badge pending">Pending</span>
+              <div class="ai-tabs">
+                <button id="aiTabBtnPlan" class="ai-tab active" onclick="AdoApp.switchAiTab('plan', this)">
+                  <span class="material-icons">auto_awesome</span>
+                  AI Planner
+                </button>
+                <button id="aiTabBtnConvert" class="ai-tab" onclick="AdoApp.switchAiTab('convert', this)">
+                  <span class="material-icons">content_paste</span>
+                  Paste Titles
+                </button>
+              </div>
+            </div>
+            <div class="ado-card-body">
+
+              <!-- Tab 1: AI Planner -->
+              <div id="aiTabPlan" class="ai-tab-panel">
+                <p class="ado-hint">
+                  Describe your feature as a <strong>numbered user flow</strong> — each line one discrete action. Optionally attach a requirements file.
+                </p>
+                <div class="ado-field">
+                  <label for="plannerDesc">Feature description</label>
+                  <textarea id="plannerDesc" placeholder="1. User navigates to login page and signs in&#10;2. User lands on home page and clicks Book section&#10;3. User applies author filter — list updates"></textarea>
+                </div>
+                <div id="plannerDropZone" class="drop-zone" onclick="AdoApp.openFilePicker()" ondragover="AdoApp.fileDragOver(event)" ondragleave="AdoApp.fileDragLeave(event)" ondrop="AdoApp.fileDrop(event)">
+                  <span class="material-icons">attach_file</span>
+                  <div style="flex: 1; min-width: 0;">
+                    <div id="plannerFileName">Attach a file (optional) — drag &amp; drop or click to browse</div>
+                    <div class="drop-zone-hint">Supports .txt .md .csv .json .xml .yaml .html .js .ts .py etc.</div>
+                  </div>
+                  <button id="plannerFileClear" class="btn btn-outline btn-sm" onclick="event.stopPropagation(); AdoApp.clearAttachedFile();">Clear</button>
+                </div>
+                <input id="plannerFileInput" type="file" accept=".txt,.md,.csv,.json,.xml,.yaml,.yml,.html,.js,.ts,.tsx,.jsx,.py,.cs,.java,.sql,.feature,text/plain,text/*" style="display: none" onchange="AdoApp.fileSelected(this)" />
+                <div class="ado-field">
+                  <label for="plannerSection">Focus on section <span style="font-weight: 400; color: var(--text-muted); text-transform: none;">(optional)</span></label>
+                  <input id="plannerSection" type="text" class="input" placeholder='e.g. "Checkout flow", "Section 3.2"' />
+                </div>
+                <div class="action-bar">
+                  <button id="plannerGenBtn" class="btn btn-primary" onclick="AdoApp.planScenarios()">
+                    <span class="material-icons">auto_awesome</span>
+                    Generate Titles
+                  </button>
+                  <button id="plannerAcceptBtn" class="btn btn-outline" onclick="AdoApp.acceptScenarios()" disabled>
+                    <span class="material-icons">check_circle</span>
+                    Accept → JSON
+                  </button>
+                  <span style="margin-left: auto; font-size: 12px; color: var(--text-muted);">Using <span id="planProviderLabel">Ollama</span></span>
+                </div>
+                <div class="ado-field">
+                  <label for="plannerOutput">Generated titles <span style="font-weight: 400; color: var(--text-muted); text-transform: none;">(editable — delete unwanted before accepting)</span></label>
+                  <textarea id="plannerOutput" class="mono-textarea" placeholder="Scenario titles will stream here…"></textarea>
+                </div>
+                <div class="ado-parse-row">
+                  <span id="plannerStatus" class="ado-parse-status">Describe your feature above and click Generate.</span>
+                </div>
+              </div>
+
+              <!-- Tab 2: Paste Titles -->
+              <div id="aiTabConvert" class="ai-tab-panel hidden">
+                <p class="ado-hint">
+                  Already have scenario titles? Paste them below — one per line, bullet list, or numbered. The AI expands each into full test steps.
+                </p>
+                <div class="ado-field">
+                  <label for="convertInput">Scenario titles</label>
+                  <textarea id="convertInput" class="mono-textarea" placeholder="- Login — Valid credentials | Admin role&#10;- Login — Invalid password | Standard user&#10;- Login — Account locked after 5 failed attempts"></textarea>
+                </div>
+                <div class="action-bar">
+                  <button id="convertBtn" class="btn btn-primary" onclick="AdoApp.convertScenarios()">
+                    <span class="material-icons">data_object</span>
+                    Convert → JSON
+                  </button>
+                  <span style="margin-left: auto; font-size: 12px; color: var(--text-muted);">Using <span id="convertProviderLabel">Ollama</span></span>
+                </div>
+                <div class="ado-parse-row">
+                  <span id="convertStatus" class="ado-parse-status">Paste titles above and click Convert → JSON.</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Step 2: Generate JSON -->
+          <div class="card card-emphasis step-card" id="adoGenerateCard">
+            <div class="ado-card-header">
+              <span class="ado-card-title">
+                <span class="material-icons">data_object</span>
+                Step 2: Review &amp; Generate JSON
+              </span>
+              <span id="generateBadge" class="section-badge pending">Pending</span>
+            </div>
+            <div class="ado-card-body">
+              <p class="ado-hint">
+                Review the generated test cases below. Each item needs a <code>title</code> and a <code>steps</code> array. Click <strong>Parse Scenarios</strong> to validate.
+              </p>
+              <div class="scenarios-textarea-wrap">
+                <div id="scenariosLoader" class="scenarios-loader">
+                  <div class="scenarios-loader-spinner"></div>
+                  <span class="scenarios-loader-text">Generating JSON…</span>
+                </div>
+                <textarea id="adoScenariosInput" placeholder='[{&#10;  "title": "Login — Valid credentials",&#10;  "tags": ["Login", "HappyPath"],&#10;  "steps": [{&#10;    "action": "Navigate to login page.",&#10;    "expected": "Login page loads."&#10;  }]&#10;}]'></textarea>
+              </div>
+              <div class="ado-parse-row">
+                <button class="btn btn-outline btn-sm" onclick="AdoApp.parseScenarios()">
+                  <span class="material-icons">checklist</span>
+                  Parse Scenarios
+                </button>
+                <span id="adoParseStatus" class="ado-parse-status">Paste or generate JSON above, then click Parse.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Connect & Create -->
+          <div class="card card-emphasis step-card" id="adoCreateCard">
+            <div class="ado-card-header">
+              <span class="ado-card-title">
+                <span class="material-icons">cloud_upload</span>
+                Step 3: Create in Azure DevOps
+              </span>
+              <span id="createBadge" class="section-badge pending">Pending</span>
+            </div>
+            <div class="ado-card-body">
+              <p class="ado-hint">
+                Launch Chrome and sign into Azure DevOps, then create your test cases. The tool uses your browser session — no PAT needed.
+              </p>
+              <div class="ado-step-row">
+                <button id="adoLaunchBtn" class="btn btn-outline" onclick="AdoApp.launchChrome()">
+                  <span class="material-icons">open_in_new</span>
+                  Launch Chrome
+                </button>
+                <span id="adoChromeStatus" class="ado-step-status">Opens Chrome with remote debug port — sign into ADO, then continue below.</span>
+              </div>
+              <div class="ado-step-row">
+                <button id="adoRunBtn" class="btn btn-primary btn-lg" onclick="AdoApp.startRun()" disabled>
+                  <span class="material-icons">publish</span>
+                  Create in Azure DevOps
+                </button>
+                <span class="ado-step-desc">Creates all parsed test cases as ADO work items using your browser session.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Log + Results -->
+          <div id="adoLogResultsCard" class="card step-card">
+            <div class="ado-card-header">
+              <span class="ado-card-title">
+                <span class="material-icons">terminal</span>
+                Log &amp; Results
+              </span>
+              <span id="resultsBadge" class="section-badge pending">Pending</span>
+            </div>
+            <div id="adoSummaryBar" class="ado-summary-bar">
+              <div class="ado-stat ado-stat--created">
+                <span class="ado-stat-label">Created</span>
+                <span class="ado-stat-value sum-created">0</span>
+              </div>
+              <div class="ado-stat ado-stat--failed">
+                <span class="ado-stat-label">Failed</span>
+                <span class="ado-stat-value sum-failed">0</span>
+              </div>
+              <div class="ado-stat ado-stat--total">
+                <span class="ado-stat-label">Total</span>
+                <span class="ado-stat-value sum-total">0</span>
+              </div>
+            </div>
+            <div id="adoLog" class="ado-log-wrap"></div>
+          </div>
+
+          <!-- Results table -->
+          <div id="adoResultsWrap" class="card ado-results-wrap">
+            <div class="ado-card-header">
+              <span class="ado-card-title">
+                <span class="material-icons">table_chart</span>
+                Results
+              </span>
+            </div>
+            <table class="ado-results-table">
+              <thead>
+                <tr>
+                  <th class="col-num">#</th>
+                  <th>Title</th>
+                  <th class="col-tags">Tags</th>
+                  <th class="col-status">Status</th>
+                  <th class="col-wi">Work Item</th>
+                </tr>
+              </thead>
+              <tbody id="adoResultsTbody"></tbody>
+            </table>
+          </div>
+
+        </div>
+        <!-- /generator tab -->
+
+        <!-- ══════════ SETTINGS TAB ══════════ -->
+        <div id="appTabSettings" class="app-tab-panel hidden">
+
+          <div class="card step-card">
+            <div class="ado-card-header">
+              <span class="ado-card-title">
+                <span class="material-icons">folder</span>
+                Project Details
+              </span>
+            </div>
+            <div class="ado-card-body">
+              <div class="settings-section-grid">
+                <div class="ado-field">
+                  <label for="adoOrg">ADO Organisation</label>
+                  <input id="adoOrg" type="text" class="input" placeholder="e.g. MyOrganisation" />
+                </div>
+                <div class="ado-field">
+                  <label for="adoProject">ADO Project</label>
+                  <input id="adoProject" type="text" class="input" placeholder="e.g. MyProject" />
+                </div>
+                <div class="ado-field">
+                  <label for="adoChromePath">Chrome Path <span style="font-weight: 400; color: var(--text-muted); text-transform: none;">(optional)</span></label>
+                  <input id="adoChromePath" type="text" class="input" placeholder="Auto-detected if left empty" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card step-card" id="adoLlmSettingsCard">
+            <div class="ado-card-header">
+              <span class="ado-card-title">
+                <span class="material-icons">smart_toy</span>
+                LLM Provider
+              </span>
+            </div>
+            <div class="ado-card-body">
+              <p class="ado-hint">
+                Choose which AI provider generates your test scenarios. API keys set via <code>.env</code> are pre-filled; you can override them here for the session.
+              </p>
+
+              <div class="ado-field" style="margin-bottom: 16px;">
+                <label for="adoLlmProvider">Provider</label>
+                <select id="adoLlmProvider" class="input" onchange="AdoApp.onProviderChange()"></select>
+              </div>
+
+              <div id="adoLlmConfigFields"></div>
+
+              <div style="margin-top: 8px;">
+                <button class="btn btn-outline btn-sm" onclick="AdoApp.testProviderConnection()">
+                  <span class="material-icons">network_check</span>
+                  Test Connection
+                </button>
+                <span id="adoLlmTestStatus" class="ado-parse-status" style="margin-left: 10px;"></span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- /settings tab -->
+
+      </div>
+    </div>
+
+    <footer class="app-footer">
+      <div class="app-footer-inner">
+        <span class="app-footer-copy">&copy; 2026 Sritaj Kumar Patel</span>
+        <span class="app-footer-sep"></span>
+        <span class="app-footer-vibe">&#x26A1; Thought of it. Described it. Copilot & Claude built it.</span>
+        <span class="app-footer-sep"></span>
+        <span class="app-footer-version">v2.0.0</span>
+      </div>
+    </footer>
+
+    <script src="adoApp.js"></script>
+  </body>
+</html>
