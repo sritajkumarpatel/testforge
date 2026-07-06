@@ -2,6 +2,12 @@
   "name": "testforge",
   "version": "2.0.0",
   "description": "AI-powered test case generation for Azure DevOps — multi-agent, multi-LLM",
+  "keywords": [
+    "azure-devops", "test-automation", "ai-testing", "test-case-generator",
+    "llm", "qa-automation", "playwright", "bdd", "agile-testing",
+    "software-testing", "quality-engineering", "test-management",
+    "ollama", "openai", "claude", "gemini", "gherkin"
+  ],
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

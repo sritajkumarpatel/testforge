@@ -1,6 +1,24 @@
-# TestForge
+<div align="center">
+  <h1>TestForge</h1>
+  <p><strong>AI-powered test case generation for Azure DevOps</strong></p>
+  <p>Requirements → ADO Test Cases. Three AI agents. One click.</p>
 
-**AI-powered test case generation for Azure DevOps.** Feed it requirements documents, ADO work items, or plain text — three autonomous AI agents analyze, design, and produce ready-to-create test cases.
+  <p>
+    <a href="#quick-start"><img src="https://img.shields.io/badge/-Try%20in%2030%20seconds-2563EB?style=for-the-badge" alt="Try in 30 seconds"></a>
+    <a href="https://github.com/USER/TestForge/actions/workflows/ci.yml"><img src="https://github.com/USER/TestForge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+    <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="Node">
+    <img src="https://img.shields.io/github/stars/USER/TestForge?style=social" alt="Stars">
+  </p>
+</div>
+
+---
+
+## The Problem
+
+> Manual test case creation is the #1 bottleneck in QA cycles. writing 100+ test cases per sprint takes **days**, coverage is inconsistent, and Azure DevOps' UI makes bulk creation painful.
+
+**TestForge solves this.** Feed it a requirements document, an ADO work item, or plain text — three autonomous AI agents analyze, design, and produce ready-to-create ADO test cases in **under 3 minutes**.
 
 ---
 
@@ -10,153 +28,96 @@
 Requirements → [Requirements Analyst] → [Test Designer] → [Test Case Writer] → ADO Test Cases
 ```
 
-| Agent | Role |
-|-------|------|
-| **Requirements Analyst** | Parses raw input into structured functional requirements |
-| **Test Designer** | Applies 8 test design techniques (equivalence partitioning, boundary value analysis, state transition, etc.) |
-| **Test Case Writer** | Produces a JSON array of ADO-ready test case objects |
+| Agent | Role | Techniques |
+|-------|------|-----------|
+| **Requirements Analyst** | Parses raw input into structured functional requirements | NLP extraction, ambiguity detection, gap analysis |
+| **Test Designer** | Applies systematic test design techniques | Equivalence Partitioning, BVA, State Transition, Decision Tables, Pairwise & more |
+| **Test Case Writer** | Produces a JSON array of ADO-ready test case objects | Step-by-step imperative actions, precondition → verification |
 
-Each agent receives the full output of the previous agent, building context sequentially.
+Each agent receives the full output of the previous agent, building context sequentially. Supports both **regular** and **BDD (Gherkin)** test formats.
+
+---
+
+## Why TestForge?
+
+| | Manual Process | TestForge |
+|---|---------------|-----------|
+| ⏱ **Time per 100 test cases** | 2–3 days | 2–3 minutes |
+| 🧠 **Test design technique coverage** | Depends on individual expertise | 8 systematic techniques applied automatically |
+| 📋 **Coverage gaps** | Common (fatigue, time pressure) | Traceable per-scenario with technique tagging |
+| 🔄 **Re-work on requirement changes** | Days of manual rewriting | Re-run the pipeline |
+| 🏗 **ADO creation** | Manual copy-paste per test case | One-click bulk creation via Chrome CDP |
+| 💰 **Cost** | Salaried QA engineer hours | Free (Ollama) or pennies in API costs |
 
 ---
 
 ## Features
 
-- **3 input modes**: Upload files (PDF, Word, Markdown, code), fetch ADO work items, or paste text directly
-- **5 LLM providers**: Ollama (local), OpenAI, Anthropic Claude, Google Gemini, OpenCode
-- **Streaming output**: See each agent's reasoning in real time via SSE
-- **JSON import/export**: Download generated test cases, edit externally, re-upload
-- **One-click ADO creation**: Launches Chrome, uses your browser session (no PAT needed) to create test case work items
-- **Works offline**: Use Ollama with local models, no internet required
+- **3 input modes** — Upload files (PDF, Word, Markdown), fetch ADO work items, or paste text
+- **5 LLM providers** — Ollama (local), OpenAI, Claude, Google Gemini, OpenCode
+- **Regular + BDD output** — Choose between structured test cases or Gherkin-style scenarios
+- **Streaming pipeline** — Watch each agent reason in real time via SSE
+- **One-click ADO creation** — Uses your browser session via Playwright CDP — no PAT needed
+- **JSON import/export** — Download, edit externally, re-upload
+- **Works offline** — Use Ollama with local models, zero cloud dependency
 
 ---
 
 ## Quick Start
 
-### 1. Prerequisites
-
-- Node.js 18+
-- npm
-- (Optional) Chrome/Edge for ADO creation
-- (Optional) Ollama for local LLM inference
-
-### 2. Install
-
 ```bash
-git clone <repo-url>
+# 1. Clone & install
+git clone https://github.com/USER/TestForge.git
 cd testforge
-npm install
-cd client && npm install && cd ..
-```
+npm install && cd client && npm install && cd ..
 
-### 3. Configure
+# 2. Configure (copy and edit .env)
+cp .env.example .env
 
-Copy `.env.example` to `.env` and set at least one LLM provider:
-
-```env
-# Minimum — local (Ollama)
-OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.2
-
-# Or — cloud providers
-OPENAI_API_KEY=sk-...
-CLAUDE_API_KEY=sk-ant-...
-GOOGLE_API_KEY=AIza...
-OPENCODE_API_KEY=oc-...
-```
-
-### 4. Run
-
-```bash
+# 3. Run
 node server.js
 ```
 
-Open `http://localhost:3010` in your browser.
+Open **http://localhost:3010** in your browser.
 
 ---
 
-## Configuration Reference
+## Screenshots
 
-| Variable | Default | Provider |
-|----------|---------|----------|
-| `PORT` | `3010` | — |
-| `ADO_ORG` | — | Pre-fills Organisation in Settings |
-| `ADO_PROJECT` | — | Pre-fills Project in Settings |
-| `CHROME_PATH` | Auto-detected | Chrome/Edge location |
-| `OLLAMA_URL` | `http://localhost:11434` | Ollama |
-| `OLLAMA_MODEL` | `llama3.2` | Ollama |
-| `OPENAI_API_KEY` | — | OpenAI |
-| `OPENAI_MODEL` | `gpt-4o` | OpenAI |
-| `CLAUDE_API_KEY` | — | Anthropic |
-| `CLAUDE_MODEL` | `claude-sonnet-4-20250514` | Anthropic |
+> *Screenshots coming soon — see the live pipeline in action.*
+
+| Pipeline | Settings | Test Results |
+|----------|----------|-------------|
+| *(screenshot)* | *(screenshot)* | *(screenshot)* |
+
+---
+
+## Configuration
+
+| Variable | Default | Required For |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | — | OpenAI provider |
+| `CLAUDE_API_KEY` | — | Anthropic Claude |
 | `GOOGLE_API_KEY` | — | Google Gemini |
-| `GOOGLE_MODEL` | `gemini-2.0-flash` | Google Gemini |
 | `OPENCODE_API_KEY` | — | OpenCode |
-| `OPENCODE_URL` | `https://api.opencode.ai/v1` | OpenCode |
-| `OPENCODE_MODEL` | `deepseek-v4-flash-free` | OpenCode |
+| `OLLAMA_URL` | `http://localhost:11434` | Ollama (local) |
+| `ADO_ORG` / `ADO_PROJECT` | — | Pre-fills ADO settings |
+| `CHROME_PATH` | Auto-detected | One-click ADO creation |
+| `PORT` | `3010` | Server port |
 
----
-
-## Usage Walkthrough
-
-### Step 1: Load Requirements (Pipeline tab)
-
-Choose one of three input methods:
-
-- **Upload File**: Drop or select PDF, .docx, .txt, .md, or code files. The server parses them and extracts the text.
-- **Azure DevOps**: Enter a work item ID (PBI, user story, bug) to fetch its description directly from ADO. Requires Organisation and Project set in Settings.
-- **Paste Text**: Copy-paste requirements, specifications, or user stories directly.
-
-Click **Run Agents** to start the pipeline.
-
-### Step 2: Agent Pipeline
-
-The three agents run sequentially. A live log shows:
-- Which agent is currently reasoning
-- Streaming text previews as each agent generates output
-- Completion status for each stage
-
-When all agents finish, the generated test case JSON is automatically parsed and validated.
-
-### Step 3: Review & Export
-
-- Edit the JSON directly in the editor
-- Click **Parse & Validate** to check structure
-- **Download JSON** to save and edit externally
-- **Upload JSON** to re-import previously downloaded test cases
-
-### Step 4: Create in Azure DevOps (optional)
-
-1. Launch Chrome from the **Create in Azure DevOps** card
-2. Sign into your ADO instance in the opened browser
-3. Click **Create in Azure DevOps**
-
-The tool uses Playwright CDP to hijack your authenticated session — no PAT or API key needed. Progress streams live as each test case is created.
+Full reference in [.env.example](.env.example). API keys can also be set per-session in the Settings UI.
 
 ---
 
 ## LLM Providers
 
-### Ollama (Local)
-Free, runs entirely on your machine. No API key needed.
-
-```bash
-ollama pull llama3.2
-```
-
-### OpenAI
-Set `OPENAI_API_KEY` in `.env` or enter it in Settings. Supports GPT-4o, GPT-4o-mini, GPT-4, GPT-3.5-turbo, and o3-mini.
-
-### Claude (Anthropic)
-Set `CLAUDE_API_KEY` in `.env` or enter it in Settings. Known for strong reasoning — good for complex test design.
-
-### Google Gemini
-Set `GOOGLE_API_KEY` in `.env` or Settings. Fast and capable, with a generous free tier.
-
-### OpenCode
-Set `OPENCODE_API_KEY` in `.env` or Settings. Connects to the OpenCode API for model routing.
-
-Each provider can be configured per-session in the Settings tab without modifying `.env`.
+| Provider | Cost | Setup |
+|----------|------|-------|
+| **Ollama** | Free (local) | `ollama pull llama3.2` |
+| **OpenAI** | Pay-per-token | Set `OPENAI_API_KEY` |
+| **Claude** | Pay-per-token | Set `CLAUDE_API_KEY` |
+| **Gemini** | Free tier available | Set `GOOGLE_API_KEY` |
+| **OpenCode** | Free tier available | Set `OPENCODE_API_KEY` |
 
 ---
 
@@ -167,45 +128,72 @@ testforge/
 ├── server.js               # Express server — all API routes
 ├── llm-providers.js        # Provider abstraction (Ollama, OpenAI, Claude, Google, OpenCode)
 ├── agent-pipeline.js       # 3-agent sequential orchestration
-├── agents/                 # Agent persona prompts (Markdown)
+├── agents/                 # Agent persona prompts
 │   ├── 01-requirements-analyst.md
 │   ├── 02-test-designer.md
+│   ├── 02-test-designer-bdd.md
 │   └── 03-test-case-writer.md
 ├── client/                 # React + Vite frontend
 │   ├── src/
 │   │   ├── App.jsx
-│   │   ├── components/     # Pipeline, InputSource, AgentResults, SettingsTab, etc.
+│   │   ├── components/
 │   │   └── index.css
-│   ├── public/
 │   └── package.json
-├── public/                 # Legacy fallback (served when client/dist/ is absent)
-├── .env.example            # All environment variables documented
+├── .env.example
 └── package.json
 ```
+
+---
+
+## Tech Stack
+
+**Backend:** Node.js, Express, Playwright (CDP), multer<br>
+**Frontend:** React 18, Vite 6, vanilla CSS<br>
+**Parsing:** pdf-parse (PDF), mammoth (Word)<br>
+**LLM APIs:** Ollama, OpenAI, Anthropic Claude, Google Gemini, OpenCode
 
 ---
 
 ## Development
 
 ```bash
-# Run Vite dev server (hot reload on :5173, proxies /api to :3010)
-cd client && npm run dev
-
-# In another terminal, run Express server
+# Terminal 1 — Express server (port 3010)
 node server.js
+
+# Terminal 2 — Vite dev server (port 5173, proxies /api to :3010)
+cd client && npm run dev
 ```
 
-The Vite dev server proxies `/api/*` requests to Express on port 3010, so all API calls work seamlessly during development.
+---
+
+## Roadmap
+
+- [x] Multi-LLM provider support
+- [x] BDD/Gherkin output mode
+- [ ] Jira export integration
+- [ ] CI/CD pipeline integration (GitHub Actions, ADO Pipelines)
+- [ ] Custom agent prompt editor
+- [ ] Test coverage reporting
+- [ ] Plugin system for custom test design techniques
 
 ---
 
-## Tech Stack
+## Contributing
 
-- **Backend**: Node.js, Express, Playwright (CDP), multer
-- **Frontend**: React 18, Vite 6, vanilla CSS
-- **Parsing**: pdf-parse (PDF), mammoth (Word)
-- **LLM APIs**: Ollama, OpenAI, Anthropic Claude, Google Gemini, OpenCode
+Contributions are welcome! See [open issues](https://github.com/USER/TestForge/issues) for good first issues. PRs, feature requests, and bug reports are all appreciated.
 
 ---
+
+## License
 
 MIT © 2026 Sritaj Kumar Patel
+
+---
+
+<div align="center">
+  <p>If TestForge saves you time, <strong>star the repo ⭐</strong> — it helps others find it too.</p>
+  <p>
+    <a href="https://github.com/USER/TestForge/stargazers"><img src="https://img.shields.io/github/stars/USER/TestForge?style=social" alt="Stars"></a>
+    <a href="https://github.com/USER/TestForge/forks"><img src="https://img.shields.io/github/forks/USER/TestForge?style=social" alt="Forks"></a>
+  </p>
+</div>
