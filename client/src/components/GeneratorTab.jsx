@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import Pipeline from './Pipeline';
+import PreReqStep from './PreReqStep';
 import InputSource from './InputSource';
 import AgentResults from './AgentResults';
 import CreateStep from './CreateStep';
@@ -11,6 +12,7 @@ function scrollToId(id) {
 }
 
 const scrollMap = {
+  signin: 'adoPrereqCard',
   load: 'adoLoadCard',
   generate: 'adoResultsCard',
   results: 'adoLogResultsCard',
@@ -187,6 +189,8 @@ export default function GeneratorTab(props) {
   return (
     <>
       <Pipeline stage={pipelineStage} onScrollTo={(s) => scrollToId(scrollMap[s])} />
+
+      <PreReqStep config={config} chromeStatus={chromeStatus} setChromeStatus={setChromeStatus} />
 
       <InputSource
         config={config}

@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 
-const STAGES = ['load', 'generate', 'results'];
+const STAGES = ['signin', 'load', 'generate', 'results'];
 
 export default function Pipeline({ stage, onScrollTo }) {
   const idx = STAGES.indexOf(stage);
@@ -13,7 +13,7 @@ export default function Pipeline({ stage, onScrollTo }) {
             <div className="pipeline-circle">
               {i < idx ? <span className="material-icons" style={{ fontSize: 16 }}>check</span> : <span>{i + 1}</span>}
             </div>
-            <div className="pipeline-label">{s.charAt(0).toUpperCase() + s.slice(1)}</div>
+            <div className="pipeline-label">{s === 'signin' ? 'Sign In' : s.charAt(0).toUpperCase() + s.slice(1)}</div>
           </div>
         </Fragment>
       ))}

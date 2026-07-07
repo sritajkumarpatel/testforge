@@ -104,18 +104,8 @@ export default function CreateStep({ config, parsedScenarios, scenarioCount, chr
       </div>
       <div className="ado-card-body">
         <p className="ado-hint">
-          Launch Chrome and sign into Azure DevOps, then create your test cases. The tool uses your browser session — no PAT needed.
+          After signing into Azure DevOps via the Prerequisite step, create your test cases here. The tool uses your browser session — no PAT needed.
         </p>
-        <div className="ado-step-row">
-          <button className="btn btn-outline" onClick={launchChrome}>
-            <span className="material-icons">open_in_new</span> Launch Chrome
-          </button>
-          <span className={'ado-step-status' + (chromeStatus.cls ? ' ' + chromeStatus.cls : '')}>
-            {chromeStatus.url
-              ? <span dangerouslySetInnerHTML={{ __html: '✓ Chrome launched — <a href="' + chromeStatus.url + '" target="_blank" style="color:#818cf8">open ADO</a> &nbsp;·&nbsp; Sign in' }} />
-              : chromeStatus.text}
-          </span>
-        </div>
         <div className="ado-step-row">
           <button className="btn btn-primary btn-lg" onClick={startRun} disabled={isRunning || !scenarioCount}>
             <span className="material-icons">publish</span> Create in Azure DevOps
