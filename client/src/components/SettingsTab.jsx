@@ -207,6 +207,12 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
               {envVal('CHROME_PATH') && <span className="ado-env-hint">Server default: {envVal('CHROME_PATH')}</span>}
             </div>
           </div>
+          <div className="action-bar" style={{ marginTop: 0, marginBottom: 0 }}>
+            <button className="btn btn-primary btn-sm" onClick={saveAll}>
+              <span className="material-icons">save</span> Save Settings
+            </button>
+            {saveIndicator && <span className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`} style={{ marginLeft: 10 }}>{saveIndicator}</span>}
+          </div>
         </div>
       </div>
 
@@ -259,10 +265,6 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
           </div>
 
           <div className="action-bar" style={{ marginTop: 16, marginBottom: 0, justifyContent: 'flex-start' }}>
-            <button className="btn btn-primary btn-sm" onClick={saveAll}>
-              <span className="material-icons">save</span> Save
-            </button>
-            {saveIndicator && <span className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`} style={{ marginLeft: 10 }}>{saveIndicator}</span>}
             <button className="btn btn-outline btn-sm" onClick={testConnection}>
               <span className="material-icons">network_check</span> Test Connection
             </button>
