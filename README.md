@@ -5,7 +5,7 @@
 
   <p>
     <a href="#quick-start"><img src="https://img.shields.io/badge/-Try%20in%2030%20seconds-2563EB?style=for-the-badge" alt="Try in 30 seconds"></a>
-    <a href="https://github.com/USER/TestForge/actions/workflows/ci.yml"><img src="https://github.com/USER/TestForge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://github.com/sritajkumarpatel/TestForge/actions/workflows/ci.yml"><img src="https://github.com/USER/TestForge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
     <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="Node">
     <img src="https://img.shields.io/github/stars/USER/TestForge?style=social" alt="Stars">
