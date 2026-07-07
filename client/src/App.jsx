@@ -74,7 +74,7 @@ export default function App() {
       <div className="page-wrap">
         <TabNav activeTab={activeTab} onSwitch={handleTabSwitch} />
 
-        <div style={{ display: activeTab === 'generator' ? '' : 'none' }}>
+        <div style={{ display: activeTab === 'generator' ? 'flex' : 'none', flexDirection: 'column', gap: 24 }}>
           <GeneratorTab
             config={config}
             provider={provider}
@@ -97,7 +97,7 @@ export default function App() {
           />
         </div>
 
-        <div style={{ display: activeTab === 'settings' ? '' : 'none' }}>
+        <div style={{ display: activeTab === 'settings' ? 'flex' : 'none', flexDirection: 'column', gap: 24 }}>
           <SettingsTab
             config={config}
             setConfig={setConfig}
