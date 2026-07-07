@@ -46,6 +46,8 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
       localStorage.setItem('testforge_project', project);
       localStorage.setItem('testforge_chromePath', chromePath);
       localStorage.setItem(`testforge_provider_${selectedId}_config`, JSON.stringify(providerConfig));
+      setConfig((prev) => ({ ...prev, org, project, chromePath }));
+      setProvider({ id: selectedId, config: providerConfig });
       setSaveIndicator('✓ Saved');
       setTimeout(() => setSaveIndicator(''), 2000);
     } catch {
