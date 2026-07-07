@@ -5,10 +5,10 @@
 
   <p>
     <a href="#quick-start"><img src="https://img.shields.io/badge/-Try%20in%2030%20seconds-2563EB?style=for-the-badge" alt="Try in 30 seconds"></a>
-    <a href="https://github.com/sritajkumarpatel/TestForge/actions/workflows/ci.yml"><img src="https://github.com/USER/TestForge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <a href="https://github.com/sritajkumarpatel/testforge/actions/workflows/ci.yml"><img src="https://github.com/sritajkumarpatel/testforge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
     <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="Node">
-    <img src="https://img.shields.io/github/stars/USER/TestForge?style=social" alt="Stars">
+    <img src="https://img.shields.io/github/stars/sritajkumarpatel/testforge?style=social" alt="Stars">
   </p>
 </div>
 
@@ -71,7 +71,7 @@ Each agent receives the full output of the previous agent, building context sequ
 
 ```bash
 # 1. Clone & install
-git clone https://github.com/USER/TestForge.git
+git clone https://github.com/sritajkumarpatel/testforge.git
 cd testforge
 npm install && cd client && npm install && cd ..
 
@@ -187,7 +187,7 @@ cd client && npm run dev
 
 ## Contributing
 
-Contributions are welcome! See [open issues](https://github.com/USER/TestForge/issues) for good first issues. PRs, feature requests, and bug reports are all appreciated.
+Contributions are welcome! See [open issues](https://github.com/sritajkumarpatel/testforge/issues) for good first issues. PRs, feature requests, and bug reports are all appreciated.
 
 ---
 
@@ -200,7 +200,7 @@ MIT © 2026 Sritaj Kumar Patel
 <div align="center">
   <p>If TestForge saves you time, <strong>star the repo ⭐</strong> — it helps others find it too.</p>
   <p>
-    <a href="https://github.com/USER/TestForge/stargazers"><img src="https://img.shields.io/github/stars/USER/TestForge?style=social" alt="Stars"></a>
-    <a href="https://github.com/USER/TestForge/forks"><img src="https://img.shields.io/github/forks/USER/TestForge?style=social" alt="Forks"></a>
+    <a href="https://github.com/sritajkumarpatel/testforge/stargazers"><img src="https://img.shields.io/github/stars/sritajkumarpatel/testforge?style=social" alt="Stars"></a>
+    <a href="https://github.com/sritajkumarpatel/testforge/forks"><img src="https://img.shields.io/github/forks/sritajkumarpatel/testforge?style=social" alt="Forks"></a>
   </p>
 </div>
