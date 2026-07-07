@@ -23,11 +23,11 @@ export default function GeneratorTab(props) {
     parsedScenarios, setParsedScenarios,
     resultRows, setResultRows,
     isRunning, setIsRunning,
+    agentsRunning, setAgentsRunning, abortRef,
   } = props;
 
   const [jsonOutput, setJsonOutput] = useState('');
   const [agentLogs, setAgentLogs] = useState([]);
-  const [agentsRunning, setAgentsRunning] = useState(false);
   const [logs, setLogs] = useState([]);
   const [summary, setSummary] = useState(null);
   const [chromeStatus, setChromeStatus] = useState({ text: 'Launch Chrome and sign into Azure DevOps.', cls: '' });
@@ -43,6 +43,9 @@ export default function GeneratorTab(props) {
     setParseStatusClass('');
     setParsedScenarios([]);
     setPipelineStage('generate');
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     const logs = [];
     const addLog = (type, message, text) => {
@@ -62,12 +65,14 @@ export default function GeneratorTab(props) {
           providerConfig: provider.config || {},
           mode: mode || agentMode,
         }),
+        signal: controller.signal,
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         addLog('error', `✗ Server error: ${data.error || res.status}`);
         setAgentsRunning(false);
+        abortRef.current = null;
         return;
       }
 
@@ -123,6 +128,7 @@ export default function GeneratorTab(props) {
                 addLog('done', '✓ All agents finished. Parsing test cases…');
                 setJsonOutput(ev.output || '');
                 setAgentsRunning(false);
+                abortRef.current = null;
                 // Auto-parse the result
                 setTimeout(() => handleParse(ev.output), 200);
                 break;
@@ -130,14 +136,20 @@ export default function GeneratorTab(props) {
               case 'error':
                 addLog('error', `✗ ${ev.message}`);
                 setAgentsRunning(false);
+                abortRef.current = null;
                 break;
             }
           } catch {}
         }
       }
     } catch (err) {
-      addLog('error', `✗ Network error: ${err.message}`);
+      if (err.name === 'AbortError') {
+        addLog('error', '⚠ Cancelled by user');
+      } else {
+        addLog('error', `✗ Network error: ${err.message}`);
+      }
       setAgentsRunning(false);
+      abortRef.current = null;
     }
   };
 

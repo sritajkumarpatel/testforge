@@ -91,12 +91,16 @@ export default function CreateStep({ config, parsedScenarios, scenarioCount, chr
 
   return (
     <div className="card card-emphasis" id="adoCreateCard">
-      <div className="ado-card-header">
+      <div className="ado-card-header" style={{ flexWrap: 'wrap', gap: 6 }}>
         <span className="ado-card-title">
           <span className="material-icons">cloud_upload</span>
           Step 3: Create in Azure DevOps
         </span>
         <span className="section-badge pending">Pending</span>
+        <span className="section-badge" style={{ backgroundColor: chromeStatus.cls === 'ok' ? '#d1fae5' : '#fef3c7', color: chromeStatus.cls === 'ok' ? '#065f46' : '#92400e', fontWeight: 600 }}>
+          <span className="material-icons" style={{ fontSize: 14, marginRight: 4, verticalAlign: 'middle' }}>{chromeStatus.cls === 'ok' ? 'check_circle' : 'warning'}</span>
+          Prerequisite: Chrome Sign-in
+        </span>
       </div>
       <div className="ado-card-body">
         <p className="ado-hint">

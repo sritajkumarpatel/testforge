@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import TabNav from './components/TabNav';
 import GeneratorTab from './components/GeneratorTab';
 import SettingsTab from './components/SettingsTab';
@@ -14,6 +14,20 @@ export default function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [pipelineStage, setPipelineStage] = useState('load');
   const [attachedFile, setAttachedFile] = useState({ name: '', content: '' });
+  const [agentsRunning, setAgentsRunning] = useState(false);
+  const abortRef = useRef(null);
+
+  const handleTabSwitch = (tab) => {
+    if (agentsRunning) {
+      if (confirm('Agents are still running. Cancel and switch?')) {
+        if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
+        setAgentsRunning(false);
+        setActiveTab(tab);
+      }
+    } else {
+      setActiveTab(tab);
+    }
+  };
 
   useEffect(() => {
     fetch('/api/config')
@@ -58,9 +72,9 @@ export default function App() {
       </header>
 
       <div className="page-wrap">
-        <TabNav activeTab={activeTab} onSwitch={setActiveTab} />
+        <TabNav activeTab={activeTab} onSwitch={handleTabSwitch} />
 
-        {activeTab === 'generator' && (
+        <div style={{ display: activeTab === 'generator' ? '' : 'none' }}>
           <GeneratorTab
             config={config}
             provider={provider}
@@ -76,18 +90,21 @@ export default function App() {
             setPipelineStage={setPipelineStage}
             attachedFile={attachedFile}
             setAttachedFile={setAttachedFile}
-            onSwitchToSettings={() => setActiveTab('settings')}
+            onSwitchToSettings={() => handleTabSwitch('settings')}
+            agentsRunning={agentsRunning}
+            setAgentsRunning={setAgentsRunning}
+            abortRef={abortRef}
           />
-        )}
+        </div>
 
-        {activeTab === 'settings' && (
+        <div style={{ display: activeTab === 'settings' ? '' : 'none' }}>
           <SettingsTab
             config={config}
             setConfig={setConfig}
             provider={provider}
             setProvider={setProvider}
           />
-        )}
+        </div>
       </div>
 
       <footer className="app-footer">
