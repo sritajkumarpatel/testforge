@@ -328,8 +328,14 @@ function registerLlmRoutes(app) {
     try {
       envExample = fs.readFileSync(path.join(__dirname, ".env.example"), "utf-8");
     } catch {}
+    let version = "2.0.0";
+    try {
+      const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "package.json"), "utf-8"));
+      version = pkg.version || version;
+    } catch {}
 
     res.json({
+      version,
       org: process.env.ADO_ORG || "",
       project: process.env.ADO_PROJECT || "",
       chromePath: process.env.CHROME_PATH || "",

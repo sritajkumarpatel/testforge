@@ -113,7 +113,7 @@ export default function App() {
           <span className="app-footer-dot" />
           <span className="app-footer-tagline">AI-powered test case generation</span>
           <span className="app-footer-dot" />
-          <span className="app-footer-version">v2.0.0</span>
+          <span className="app-footer-version">v{config.version || '2.0.0'}</span>
         </div>
       </footer>
     </>

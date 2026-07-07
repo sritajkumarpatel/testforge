@@ -58,6 +58,10 @@ Each agent receives the full output of the previous agent, building context sequ
 - **Regular + BDD output** — Choose between structured test cases or Gherkin-style scenarios
 - **Streaming pipeline** — Watch each agent reason in real time via SSE
 - **One-click ADO creation** — Uses your browser session via Playwright CDP — no PAT needed
+- **Chrome sign-in prerequisite** — Dedicated sign-in step before loading requirements; Pipeline tracks sign-in status
+- **State persistence** — Input data, agent logs, and settings survive tab switches between Pipeline and Settings
+- **Safe tab switching** — Confirm dialog when switching tabs while agents are running; cancels on approval
+- **Uniform settings save** — Save buttons in both Project Details and LLM Provider cards
 - **JSON import/export** — Download, edit externally, re-upload
 - **Works offline** — Use Ollama with local models, zero cloud dependency
 
@@ -170,6 +174,9 @@ cd client && npm run dev
 
 - [x] Multi-LLM provider support
 - [x] BDD/Gherkin output mode
+- [x] Chrome CDP one-click ADO creation
+- [x] Streaming pipeline with real-time agent logs
+- [x] State persistence across tab switches
 - [ ] Jira export integration
 - [ ] CI/CD pipeline integration (GitHub Actions, ADO Pipelines)
 - [ ] Custom agent prompt editor
