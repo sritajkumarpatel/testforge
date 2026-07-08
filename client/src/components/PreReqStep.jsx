@@ -9,7 +9,11 @@ export default function PreReqStep({ config, chromeStatus, setChromeStatus }) {
       });
       const data = await res.json();
       if (data.ok) {
-        setChromeStatus({ text: `✓ Chrome launched — sign into ADO in the opened window.`, cls: 'ok', url: data.url });
+        setChromeStatus({
+          text: `✓ Chrome launched — sign into ADO in the opened window.`,
+          cls: 'ok',
+          url: data.url,
+        });
       } else {
         setChromeStatus({ text: `✗ ${data.error || 'Unknown error'}`, cls: 'err' });
       }
@@ -31,16 +35,26 @@ export default function PreReqStep({ config, chromeStatus, setChromeStatus }) {
       </div>
       <div className="ado-card-body">
         <p className="ado-hint">
-          TestForge uses your browser session to create work items in Azure DevOps. Launch Chrome and sign into ADO before generating test cases.
+          TestForge uses your browser session to create work items in Azure DevOps. Launch Chrome
+          and sign into ADO before generating test cases.
         </p>
         <div className="ado-step-row">
           <button className="btn btn-primary btn-lg" onClick={launchChrome}>
             <span className="material-icons">open_in_new</span> Launch Chrome &amp; Sign In
           </button>
           <span className={'ado-step-status' + (chromeStatus.cls ? ' ' + chromeStatus.cls : '')}>
-            {chromeStatus.url
-              ? <span dangerouslySetInnerHTML={{ __html: '✓ Chrome launched — <a href="' + chromeStatus.url + '" target="_blank" style="color:#818cf8">open ADO</a> &nbsp;·&nbsp; Sign in with your account' }} />
-              : chromeStatus.text}
+            {chromeStatus.url ? (
+              <span
+                dangerouslySetInnerHTML={{
+                  __html:
+                    '✓ Chrome launched — <a href="' +
+                    chromeStatus.url +
+                    '" target="_blank" style="color:#818cf8">open ADO</a> &nbsp;·&nbsp; Sign in with your account',
+                }}
+              />
+            ) : (
+              chromeStatus.text
+            )}
           </span>
         </div>
       </div>
