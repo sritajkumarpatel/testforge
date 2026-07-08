@@ -7,6 +7,9 @@ export default function InputSource({ config, onInputReady, providerName, pipeli
   const [rawText, setRawText] = useState('');
   const [fileName, setFileName] = useState('');
   const [adoId, setAdoId] = useState('');
+  const [requirementId, setRequirementId] = useState('');
+  const [ticketTitle, setTicketTitle] = useState('');
+  const [ticketNumber, setTicketNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
   const [statusClass, setStatusClass] = useState('');
@@ -60,6 +63,9 @@ export default function InputSource({ config, onInputReady, providerName, pipeli
       if (data.ok) {
         setRawText(data.text);
         setFileName(`ADO #${adoId}: ${data.title}`);
+        setRequirementId(adoId.trim());
+        setTicketTitle(data.title || '');
+        setTicketNumber(adoId.trim());
         setStatus(`✓ Fetched ADO #${adoId} — ${data.title}`);
         setStatusClass('ok');
       } else {
@@ -75,7 +81,12 @@ export default function InputSource({ config, onInputReady, providerName, pipeli
 
   const handleRun = () => {
     if (!rawText.trim()) { setStatus('Load or paste requirements first.'); setStatusClass('err'); return; }
-    onInputReady(rawText, agentMode);
+    onInputReady(rawText, {
+      mode: agentMode,
+      requirementId,
+      ticketTitle,
+      ticketNumber,
+    });
   };
 
   return (

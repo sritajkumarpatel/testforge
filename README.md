@@ -45,13 +45,16 @@ No manual test writing. No tedious copy-paste into ADO. Just your requirements +
 ## How It Works
 
 ```
-Requirements → [Requirements Analyst] → [Test Designer] → [Test Case Writer] → ADO Test Cases
+Requirements → [Requirements Analyst] → [Classifier] → [UI / API / Mock Designers] → [Test Case Writer] → ADO Test Cases
 ```
 
-| Agent | Role | Techniques |
+| Agent | Role | Specialism |
 |---|---|---|
 | **Requirements Analyst** | Parses raw input into structured functional requirements | NLP extraction, ambiguity detection, gap analysis |
-| **Test Designer** | Applies systematic test design techniques | Equivalence Partitioning, BVA, State Transition, Decision Tables, Pairwise & more |
+| **Classifier** | Decides whether the requirement is UI, API, Mock, or mixed | Requirement-type routing |
+| **UI Test Designer** | Designs UI/UX scenarios | Forms, navigation, validation, accessibility, responsive behavior |
+| **API Test Designer** | Designs API scenarios | HTTP contracts, auth, status codes, schema, rate limits |
+| **Mock & Service Virtualization Designer** | Provides mock/stub guidelines | External dependency simulation, contract testing |
 | **Test Case Writer** | Produces a JSON array of ADO-ready test case objects | Step-by-step imperative actions, precondition → verification |
 
 Each agent receives the full output of the previous agent, building context sequentially. Supports both **regular** and **BDD (Gherkin)** test formats.
@@ -178,9 +181,11 @@ testforge/
 ├── llm-providers.js        # Provider abstraction (Ollama, OpenAI, Claude, Google, OpenCode)
 ├── agent-pipeline.js       # 3-agent sequential orchestration
 ├── agents/                 # Agent persona prompts
+│   ├── 00-classifier.md
 │   ├── 01-requirements-analyst.md
-│   ├── 02-test-designer.md
-│   ├── 02-test-designer-bdd.md
+│   ├── 02-ui-designer.md
+│   ├── 02-api-designer.md
+│   ├── 02-mock-designer.md
 │   └── 03-test-case-writer.md
 ├── client/                 # React + Vite frontend
 │   ├── src/

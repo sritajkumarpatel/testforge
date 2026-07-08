@@ -25,12 +25,21 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const { registerLlmRoutes } = require("./llm-providers");
-const { runAgentPipeline, loadAgentPrompts } = require("./agent-pipeline");
+const { runOrchestratedPipeline, loadAgentPrompts, exportLogAsTxt } = require("./agent-pipeline");
 const multer = require("multer");
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 const PORT = process.env.PORT || 3010;
+
+const LOGS_DIR = path.join(__dirname, "logs");
+try {
+  if (!fs.existsSync(LOGS_DIR)) fs.mkdirSync(LOGS_DIR, { recursive: true });
+} catch (err) {
+  console.warn("Could not create logs directory:", err.message);
+}
+
+const recentLogs = new Map(); // runId -> audit log object
 
 app.use(express.json({ limit: "2mb" }));
 
@@ -380,13 +389,20 @@ app.post("/api/ado/fetch-work-item", async (req, res) => {
 // ─── Agents ───────────────────────────────────────────────────────────────────
 
 app.get("/api/agents", (req, res) => {
-  const mode = req.query.mode || "regular";
-  const agents = loadAgentPrompts(mode);
+  const agents = loadAgentPrompts();
   res.json({ agents: agents.map((a) => ({ id: a.id, name: a.name })) });
 });
 
 app.post("/api/agents/run", async (req, res) => {
-  const { input, provider: providerId = "ollama", providerConfig = {}, mode = "regular" } = req.body || {};
+  const {
+    input,
+    provider: providerId = "ollama",
+    providerConfig = {},
+    mode = "regular",
+    requirementId = "",
+    ticketTitle = "",
+    ticketNumber = "",
+  } = req.body || {};
   if (!input || !input.trim()) {
     return res.status(400).json({ error: "Input text is required." });
   }
@@ -404,25 +420,74 @@ app.post("/api/agents/run", async (req, res) => {
   }
 
   const resolvedConfig = { ...providerConfig };
+  const model = providerConfig.model || provider.defaultModel;
+  const metadata = {
+    mode,
+    provider: provider.name || providerId,
+    model,
+    requirementId,
+    ticketTitle,
+    ticketNumber,
+  };
 
-  await runAgentPipeline({
+  const log = await runOrchestratedPipeline({
     send,
     userInput: input,
     mode,
-    callLlm: async ({ systemPrompt, userMessage, onChunk, onDone, onError }) => {
-      await provider.generate({
+    metadata,
+    callLlm: async ({ systemPrompt, userMessage, onChunk, onError }) => {
+      const usage = await provider.generate({
         systemPrompt: systemPrompt || "",
         userMessage,
-        model: providerConfig.model || provider.defaultModel,
+        model,
         ...resolvedConfig,
         onChunk(text) { if (text) onChunk(text); },
-        onDone() { onDone(); },
         onError(msg) { onError(msg); },
       });
+      return usage;
     },
   });
 
+  recentLogs.set(log.runId, log);
+  try {
+    const logPath = path.join(LOGS_DIR, `${log.runId}.json`);
+    fs.writeFileSync(logPath, JSON.stringify(log, null, 2));
+  } catch (err) {
+    console.warn("Failed to persist audit log:", err.message);
+  }
+
   if (!res.writableEnded) res.end();
+});
+
+// ─── GET /api/agents/run/:runId/export ───────────────────────────────────────
+
+app.get("/api/agents/run/:runId/export", async (req, res) => {
+  const { runId } = req.params;
+  if (!runId || !/^tf-[\w-]+$/.test(runId)) {
+    return res.status(400).json({ error: "Invalid runId." });
+  }
+
+  let log = recentLogs.get(runId);
+  if (!log) {
+    const logPath = path.join(LOGS_DIR, `${runId}.json`);
+    try {
+      if (fs.existsSync(logPath)) {
+        log = JSON.parse(fs.readFileSync(logPath, "utf-8"));
+      }
+    } catch (err) {
+      console.warn("Failed to read persisted audit log:", err.message);
+    }
+  }
+
+  if (!log) {
+    return res.status(404).json({ error: "Run log not found." });
+  }
+
+  const txt = exportLogAsTxt(log);
+  const filename = `${runId}-audit-log.txt`;
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(txt);
 });
 
 // ─── LLM provider routes (unified) ───────────────────────────────────────────

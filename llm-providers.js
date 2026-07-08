@@ -6,6 +6,14 @@ const path = require("path");
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || "http://localhost:11434";
 const OLLAMA_DEFAULT_MODEL = process.env.OLLAMA_MODEL || "llama3.2";
 
+function unsupportedUsage(reason) {
+  return { unsupported: true, reason };
+}
+
+function exactUsage(inputTokens, outputTokens) {
+  return { inputTokens, outputTokens };
+}
+
 function ollamaProvider() {
   return {
     id: "ollama",
@@ -16,7 +24,7 @@ function ollamaProvider() {
       { key: "baseUrl", label: "Base URL", type: "text", defaultValue: OLLAMA_BASE_URL, placeholder: "http://localhost:11434" },
       { key: "model", label: "Model", type: "text", defaultValue: OLLAMA_DEFAULT_MODEL, placeholder: "llama3.2" },
     ],
-    async generate({ systemPrompt, userMessage, model, baseUrl, onChunk, onDone, onError }) {
+    async generate({ systemPrompt, userMessage, model, baseUrl, onChunk, onError }) {
       const url = (baseUrl || OLLAMA_BASE_URL).replace(/\/+$/, "");
       let res;
       try {
@@ -34,15 +42,17 @@ function ollamaProvider() {
         });
       } catch (err) {
         onError(`Cannot reach Ollama at ${url} — ${err.message}. Make sure Ollama is running.`);
-        return;
+        return unsupportedUsage("Ollama request failed before usage could be captured");
       }
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         onError(`Ollama returned ${res.status}: ${text.slice(0, 300)}`);
-        return;
+        return unsupportedUsage(`Ollama returned HTTP ${res.status}`);
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      let promptEvalCount = null;
+      let evalCount = null;
       try {
         while (true) {
           const { done, value } = await reader.read();
@@ -52,13 +62,20 @@ function ollamaProvider() {
             try {
               const obj = JSON.parse(line);
               if (obj.message && obj.message.content) onChunk(obj.message.content);
-              if (obj.done) { onDone(); return; }
+              if (obj.done) {
+                promptEvalCount = obj.prompt_eval_count ?? null;
+                evalCount = obj.eval_count ?? null;
+              }
             } catch { console.warn("ollama: failed to parse NDJSON line", line.slice(0, 100)); }
           }
         }
-        onDone();
+        if (promptEvalCount != null && evalCount != null) {
+          return exactUsage(promptEvalCount, evalCount);
+        }
+        return unsupportedUsage("Ollama did not expose usage metadata for this stream");
       } catch (err) {
         onError(`Stream error: ${err.message}`);
+        return unsupportedUsage(`stream error: ${err.message}`);
       }
     },
   };
@@ -76,9 +93,9 @@ function openaiProvider() {
       { key: "model", label: "Model", type: "select", defaultValue: process.env.OPENAI_MODEL || "gpt-4o", options: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo", "o3-mini"] },
       { key: "baseUrl", label: "Base URL (optional)", type: "text", defaultValue: "", placeholder: "https://api.openai.com/v1" },
     ],
-    async generate({ systemPrompt, userMessage, model, apiKey: key, baseUrl, onChunk, onDone, onError }) {
+    async generate({ systemPrompt, userMessage, model, apiKey: key, baseUrl, onChunk, onError }) {
       const effectiveKey = key || apiKey;
-      if (!effectiveKey) { onError("OpenAI API key not configured. Set OPENAI_API_KEY in .env or in Settings."); return; }
+      if (!effectiveKey) { onError("OpenAI API key not configured. Set OPENAI_API_KEY in .env or in Settings."); return unsupportedUsage("API key missing"); }
       const url = (baseUrl || "https://api.openai.com/v1").replace(/\/+$/, "") + "/chat/completions";
       let res;
       try {
@@ -92,17 +109,20 @@ function openaiProvider() {
               { role: "user", content: userMessage },
             ],
             stream: true,
+            stream_options: { include_usage: true },
           }),
         });
-      } catch (err) { onError(`Cannot reach OpenAI: ${err.message}`); return; }
+      } catch (err) { onError(`Cannot reach OpenAI: ${err.message}`); return unsupportedUsage(`network error: ${err.message}`); }
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         onError(`OpenAI returned ${res.status}: ${text.slice(0, 300)}`);
-        return;
+        return unsupportedUsage(`OpenAI returned HTTP ${res.status}`);
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
+      let promptTokens = null;
+      let completionTokens = null;
       try {
         while (true) {
           const { done, value } = await reader.read();
@@ -115,13 +135,20 @@ function openaiProvider() {
             if (!line || line === "[DONE]") continue;
             try {
               const obj = JSON.parse(line);
+              if (obj.usage) {
+                promptTokens = obj.usage.prompt_tokens ?? promptTokens;
+                completionTokens = obj.usage.completion_tokens ?? completionTokens;
+              }
               const content = obj.choices?.[0]?.delta?.content || "";
               if (content) onChunk(content);
             } catch { console.warn("openai: failed to parse SSE line", line.slice(0, 100)); }
           }
         }
-        onDone();
-      } catch (err) { onError(`Stream error: ${err.message}`); }
+        if (promptTokens != null && completionTokens != null) {
+          return exactUsage(promptTokens, completionTokens);
+        }
+        return unsupportedUsage("OpenAI did not include usage metadata in the stream");
+      } catch (err) { onError(`Stream error: ${err.message}`); return unsupportedUsage(`stream error: ${err.message}`); }
     },
   };
 }
@@ -137,9 +164,9 @@ function claudeProvider() {
       { key: "apiKey", label: "API Key", type: "password", defaultValue: apiKey ? "••••••" : "", placeholder: "sk-ant-..." },
       { key: "model", label: "Model", type: "select", defaultValue: process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514", options: ["claude-sonnet-4-20250514", "claude-sonnet-4-20250202", "claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"] },
     ],
-    async generate({ systemPrompt, userMessage, model, apiKey: key, onChunk, onDone, onError }) {
+    async generate({ systemPrompt, userMessage, model, apiKey: key, onChunk, onError }) {
       const effectiveKey = key || apiKey;
-      if (!effectiveKey) { onError("Claude API key not configured. Set CLAUDE_API_KEY in .env or in Settings."); return; }
+      if (!effectiveKey) { onError("Claude API key not configured. Set CLAUDE_API_KEY in .env or in Settings."); return unsupportedUsage("API key missing"); }
       let res;
       try {
         res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -157,11 +184,11 @@ function claudeProvider() {
             stream: true,
           }),
         });
-      } catch (err) { onError(`Cannot reach Claude: ${err.message}`); return; }
+      } catch (err) { onError(`Cannot reach Claude: ${err.message}`); return unsupportedUsage(`network error: ${err.message}`); }
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         onError(`Claude returned ${res.status}: ${text.slice(0, 300)}`);
-        return;
+        return unsupportedUsage(`Claude returned HTTP ${res.status}`);
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -184,8 +211,8 @@ function claudeProvider() {
             } catch { console.warn("claude: failed to parse SSE line", line.slice(0, 100)); }
           }
         }
-        onDone();
-      } catch (err) { onError(`Stream error: ${err.message}`); }
+        return unsupportedUsage("Claude streaming API does not expose token usage metadata");
+      } catch (err) { onError(`Stream error: ${err.message}`); return unsupportedUsage(`stream error: ${err.message}`); }
     },
   };
 }
@@ -201,9 +228,9 @@ function googleProvider() {
       { key: "apiKey", label: "API Key", type: "password", defaultValue: apiKey ? "••••••" : "", placeholder: "AIza..." },
       { key: "model", label: "Model", type: "select", defaultValue: process.env.GOOGLE_MODEL || "gemini-2.0-flash", options: ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-pro", "gemini-1.5-flash"] },
     ],
-    async generate({ systemPrompt, userMessage, model, apiKey: key, onChunk, onDone, onError }) {
+    async generate({ systemPrompt, userMessage, model, apiKey: key, onChunk, onError }) {
       const effectiveKey = key || apiKey;
-      if (!effectiveKey) { onError("Google API key not configured. Set GOOGLE_API_KEY in .env or in Settings."); return; }
+      if (!effectiveKey) { onError("Google API key not configured. Set GOOGLE_API_KEY in .env or in Settings."); return unsupportedUsage("API key missing"); }
       const effectiveModel = model || "gemini-2.0-flash";
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${effectiveModel}:streamGenerateContent?alt=sse&key=${encodeURIComponent(effectiveKey)}`;
       let res;
@@ -215,15 +242,17 @@ function googleProvider() {
             contents: [{ parts: [{ text: `${systemPrompt}\n\n${userMessage}` }] }],
           }),
         });
-      } catch (err) { onError(`Cannot reach Google Gemini: ${err.message}`); return; }
+      } catch (err) { onError(`Cannot reach Google Gemini: ${err.message}`); return unsupportedUsage(`network error: ${err.message}`); }
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         onError(`Gemini returned ${res.status}: ${text.slice(0, 300)}`);
-        return;
+        return unsupportedUsage(`Gemini returned HTTP ${res.status}`);
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
+      let promptTokens = null;
+      let candidatesTokens = null;
       try {
         while (true) {
           const { done, value } = await reader.read();
@@ -236,13 +265,21 @@ function googleProvider() {
             if (!line) continue;
             try {
               const obj = JSON.parse(line);
+              const meta = obj.usageMetadata;
+              if (meta) {
+                promptTokens = meta.promptTokenCount ?? promptTokens;
+                candidatesTokens = meta.candidatesTokenCount ?? candidatesTokens;
+              }
               const text = obj.candidates?.[0]?.content?.parts?.[0]?.text || "";
               if (text) onChunk(text);
             } catch { console.warn("google: failed to parse SSE line", line.slice(0, 100)); }
           }
         }
-        onDone();
-      } catch (err) { onError(`Stream error: ${err.message}`); }
+        if (promptTokens != null && candidatesTokens != null) {
+          return exactUsage(promptTokens, candidatesTokens);
+        }
+        return unsupportedUsage("Gemini did not include usage metadata in the stream");
+      } catch (err) { onError(`Stream error: ${err.message}`); return unsupportedUsage(`stream error: ${err.message}`); }
     },
   };
 }
@@ -260,9 +297,9 @@ function opencodeProvider() {
       { key: "baseUrl", label: "API URL", type: "text", defaultValue: baseUrl, placeholder: "https://api.opencode.ai/v1" },
       { key: "model", label: "Model", type: "select", defaultValue: process.env.OPENCODE_MODEL || "deepseek-v4-flash-free", options: ["deepseek-v4-flash-free", "deepseek-v4", "deepseek-v3"] },
     ],
-    async generate({ systemPrompt, userMessage, model, apiKey: key, baseUrl: url, onChunk, onDone, onError }) {
+    async generate({ systemPrompt, userMessage, model, apiKey: key, baseUrl: url, onChunk, onError }) {
       const effectiveKey = key || apiKey;
-      if (!effectiveKey) { onError("OpenCode API key not configured."); return; }
+      if (!effectiveKey) { onError("OpenCode API key not configured."); return unsupportedUsage("API key missing"); }
       const effectiveUrl = (url || baseUrl || "https://api.opencode.ai/v1").replace(/\/+$/, "") + "/chat/completions";
       let res;
       try {
@@ -276,17 +313,20 @@ function opencodeProvider() {
               { role: "user", content: userMessage },
             ],
             stream: true,
+            stream_options: { include_usage: true },
           }),
         });
-      } catch (err) { onError(`Cannot reach OpenCode: ${err.message}`); return; }
+      } catch (err) { onError(`Cannot reach OpenCode: ${err.message}`); return unsupportedUsage(`network error: ${err.message}`); }
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         onError(`OpenCode returned ${res.status}: ${text.slice(0, 300)}`);
-        return;
+        return unsupportedUsage(`OpenCode returned HTTP ${res.status}`);
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buf = "";
+      let promptTokens = null;
+      let completionTokens = null;
       try {
         while (true) {
           const { done, value } = await reader.read();
@@ -299,13 +339,20 @@ function opencodeProvider() {
             if (!line || line === "[DONE]") continue;
             try {
               const obj = JSON.parse(line);
+              if (obj.usage) {
+                promptTokens = obj.usage.prompt_tokens ?? promptTokens;
+                completionTokens = obj.usage.completion_tokens ?? completionTokens;
+              }
               const content = obj.choices?.[0]?.delta?.content || "";
               if (content) onChunk(content);
             } catch { console.warn("opencode: failed to parse SSE line", line.slice(0, 100)); }
           }
         }
-        onDone();
-      } catch (err) { onError(`Stream error: ${err.message}`); }
+        if (promptTokens != null && completionTokens != null) {
+          return exactUsage(promptTokens, completionTokens);
+        }
+        return unsupportedUsage("OpenCode did not include usage metadata in the stream");
+      } catch (err) { onError(`Stream error: ${err.message}`); return unsupportedUsage(`stream error: ${err.message}`); }
     },
   };
 }
@@ -387,16 +434,16 @@ function registerLlmRoutes(app) {
 
     const send = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`);
 
-    await provider.generate({
+    const usage = await provider.generate({
       systemPrompt: systemPrompt || "",
       userMessage,
       model: model || provider.defaultModel,
       ...providerConfig,
       onChunk(text) { send({ type: "chunk", text }); },
-      onDone() { send({ type: "done" }); res.end(); },
       onError(msg) { send({ type: "error", message: msg }); res.end(); },
     });
 
+    send({ type: "done", usage });
     if (!res.writableEnded) res.end();
   });
 }

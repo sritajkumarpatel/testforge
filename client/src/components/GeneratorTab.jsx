@@ -35,9 +35,10 @@ export default function GeneratorTab(props) {
   const [chromeStatus, setChromeStatus] = useState({ text: 'Launch Chrome and sign into Azure DevOps.', cls: '' });
   const [parseStatus, setParseStatus] = useState('');
   const [parseStatusClass, setParseStatusClass] = useState('');
+  const [runId, setRunId] = useState('');
   const [agentMode, setAgentMode] = useState('regular');
 
-  const handleInputReady = async (text, mode) => {
+  const handleInputReady = async (text, meta = {}) => {
     setAgentsRunning(true);
     setAgentLogs([]);
     setJsonOutput('');
@@ -55,7 +56,7 @@ export default function GeneratorTab(props) {
       setAgentLogs([...logs]);
     };
 
-    addLog('system', 'Starting 3-agent pipeline…');
+    addLog('system', 'Starting orchestrated pipeline…');
 
     try {
       const res = await fetch('/api/agents/run', {
@@ -65,7 +66,10 @@ export default function GeneratorTab(props) {
           input: text,
           provider: provider.id,
           providerConfig: provider.config || {},
-          mode: mode || agentMode,
+          mode: meta.mode || agentMode,
+          requirementId: meta.requirementId || '',
+          ticketTitle: meta.ticketTitle || '',
+          ticketNumber: meta.ticketNumber || '',
         }),
         signal: controller.signal,
       });
@@ -98,6 +102,18 @@ export default function GeneratorTab(props) {
             const ev = JSON.parse(line);
 
             switch (ev.type) {
+              case 'pipeline-start':
+                setRunId(ev.runId || '');
+                addLog('system', `Run ID: ${ev.runId || 'N/A'}`);
+                break;
+
+              case 'classifier-decision':
+                addLog('done', `Classifier detected: ${(ev.decision || []).join(', ') || 'none'}`);
+                if (ev.reasoning) {
+                  addLog('system', `Reasoning: ${ev.reasoning}`);
+                }
+                break;
+
               case 'agent-start':
                 currentAgent = ev.agent;
                 agentStreamBuf = '';
@@ -119,11 +135,17 @@ export default function GeneratorTab(props) {
                 break;
 
               case 'agent-done':
-                addLog('done', `✓ ${ev.agent} complete`);
+                addLog('done', `✓ ${ev.agent} complete (${ev.status})`);
                 break;
 
               case 'agent-error':
                 addLog('error', `✗ ${ev.agent || 'Agent'} error: ${ev.message}`);
+                break;
+
+              case 'pipeline-error':
+                addLog('error', `✗ Pipeline error: ${ev.message}`);
+                setAgentsRunning(false);
+                abortRef.current = null;
                 break;
 
               case 'pipeline-done':
@@ -156,6 +178,31 @@ export default function GeneratorTab(props) {
   };
 
   const stripFences = (s) => s.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+
+  const exportLog = async () => {
+    if (!runId) {
+      addLog('error', 'No run ID available to export.');
+      return;
+    }
+    try {
+      const res = await fetch(`/api/agents/run/${encodeURIComponent(runId)}/export`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        addLog('error', `✗ Export failed: ${data.error || res.status}`);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${runId}-audit-log.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      addLog('done', '✓ Audit log exported');
+    } catch (err) {
+      addLog('error', `✗ Export error: ${err.message}`);
+    }
+  };
 
   const handleParse = (json) => {
     const raw = stripFences(json || jsonOutput);
@@ -212,6 +259,8 @@ export default function GeneratorTab(props) {
         parsedCount={parsedScenarios.length}
         parseStatus={parseStatus}
         parseStatusClass={parseStatusClass}
+        runId={runId}
+        onExportLog={exportLog}
       />
 
       <CreateStep

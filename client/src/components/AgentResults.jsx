@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 
-export default function AgentResults({ jsonOutput, setJsonOutput, agentLogs, agentsRunning, pipelineStage, onParse, parsedCount, parseStatus, parseStatusClass }) {
+export default function AgentResults({ jsonOutput, setJsonOutput, agentLogs, agentsRunning, pipelineStage, onParse, parsedCount, parseStatus, parseStatusClass, runId, onExportLog }) {
   const fileRef = useRef(null);
 
   const downloadJson = () => {
@@ -96,6 +96,11 @@ export default function AgentResults({ jsonOutput, setJsonOutput, agentLogs, age
             {hasContent ? (parseStatusClass === 'ok' ? '✓ Done' : 'Review') : '○ Pending'}
           </span>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            {runId && (
+              <button className="btn btn-outline btn-sm" onClick={onExportLog}>
+                <span className="material-icons">article</span> Export Log
+              </button>
+            )}
             {hasContent && (
               <button className="btn btn-outline btn-sm" onClick={downloadJson}>
                 <span className="material-icons">download</span> Download JSON
