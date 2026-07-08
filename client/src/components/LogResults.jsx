@@ -36,7 +36,10 @@ export default function LogResults({ logs, summary, resultRows, parsedScenarios 
 
         <div className="ado-log-wrap" ref={logRef}>
           {logs.map((l, i) => (
-            <span key={i} className={l.cls ? `log-${l.cls}` : ''}>{l.msg}{'\n'}</span>
+            <span key={i} className={l.cls ? `log-${l.cls}` : ''}>
+              {l.msg}
+              {'\n'}
+            </span>
           ))}
         </div>
       </div>
@@ -62,18 +65,45 @@ export default function LogResults({ logs, summary, resultRows, parsedScenarios 
             <tbody>
               {parsedScenarios.map((s, i) => {
                 const r = resultRows[i];
-                const tagPills = (s.tags || []).map((t) => `<span class="ado-tag">${escHtml(t)}</span>`).join('');
+                const tagPills = (s.tags || [])
+                  .map((t) => `<span class="ado-tag">${escHtml(t)}</span>`)
+                  .join('');
                 return (
                   <tr key={i} id={`ado-row-${i}`}>
                     <td>{i + 1}</td>
-                    <td className="ado-title-cell" title={s.title}>{escHtml(s.title)}</td>
+                    <td className="ado-title-cell" title={s.title}>
+                      {escHtml(s.title)}
+                    </td>
                     <td className="ado-tags-cell" dangerouslySetInnerHTML={{ __html: tagPills }} />
                     <td className="ado-status-cell">
-                      {!r ? <span className="ado-badge-pending">—</span> :
-                       r.status === 'created' ? <span className="ado-badge-created">✓ Created</span> :
-                       <span className="ado-badge-failed">✗ {r.status === 'failed' ? `HTTP ${r.httpStatus}` : 'Error'}</span>}
+                      {!r ? (
+                        <span className="ado-badge-pending">—</span>
+                      ) : r.status === 'created' ? (
+                        <span className="ado-badge-created">✓ Created</span>
+                      ) : (
+                        <span className="ado-badge-failed">
+                          ✗ {r.status === 'failed' ? `HTTP ${r.httpStatus}` : 'Error'}
+                        </span>
+                      )}
                     </td>
-                    <td>{r?.status === 'created' ? (r.adoUrl ? <a className="ado-id-link" href={r.adoUrl} target="_blank" rel="noreferrer">#{r.id}</a> : `#${r.id}`) : '—'}</td>
+                    <td>
+                      {r?.status === 'created' ? (
+                        r.adoUrl ? (
+                          <a
+                            className="ado-id-link"
+                            href={r.adoUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            #{r.id}
+                          </a>
+                        ) : (
+                          `#${r.id}`
+                        )
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                   </tr>
                 );
               })}
@@ -87,5 +117,10 @@ export default function LogResults({ logs, summary, resultRows, parsedScenarios 
 
 function escHtml(str) {
   if (str == null) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }

@@ -1,20 +1,28 @@
 import { useState, useEffect } from 'react';
 
 function loadStr(key, fallback = '') {
-  try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; }
+  try {
+    return localStorage.getItem(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 function loadConfig(id) {
   try {
     const s = localStorage.getItem(`testforge_provider_${id}_config`);
     return s ? JSON.parse(s) : {};
-  } catch { return {}; }
+  } catch {
+    return {};
+  }
 }
 
 export default function SettingsTab({ config, setConfig, provider, setProvider }) {
   const [org, setOrg] = useState(() => loadStr('testforge_org', config.org || ''));
   const [project, setProject] = useState(() => loadStr('testforge_project', config.project || ''));
-  const [chromePath, setChromePath] = useState(() => loadStr('testforge_chromePath', config.chromePath || ''));
+  const [chromePath, setChromePath] = useState(() =>
+    loadStr('testforge_chromePath', config.chromePath || '')
+  );
 
   const [selectedId, setSelectedId] = useState(provider.id || 'ollama');
   const [providerConfig, setProviderConfig] = useState(() => loadConfig(selectedId));
@@ -45,7 +53,10 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
       localStorage.setItem('testforge_org', org);
       localStorage.setItem('testforge_project', project);
       localStorage.setItem('testforge_chromePath', chromePath);
-      localStorage.setItem(`testforge_provider_${selectedId}_config`, JSON.stringify(providerConfig));
+      localStorage.setItem(
+        `testforge_provider_${selectedId}_config`,
+        JSON.stringify(providerConfig)
+      );
       setConfig((prev) => ({ ...prev, org, project, chromePath }));
       setProvider({ id: selectedId, config: providerConfig });
       setSaveIndicator('✓ Saved');
@@ -62,11 +73,11 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
     switch (selectedId) {
       case 'openai':
         endpoint = 'https://api.openai.com/v1/models';
-        apiKey = providerConfig.apiKey || config.env?.OPENAI_API_KEY ? 'key-set' : '';
+        apiKey = providerConfig.apiKey || '';
         break;
       case 'google':
         endpoint = 'https://generativelanguage.googleapis.com/v1beta/models';
-        apiKey = providerConfig.apiKey || config.env?.GOOGLE_API_KEY ? 'key-set' : '';
+        apiKey = providerConfig.apiKey || '';
         break;
       case 'ollama': {
         const baseUrl = providerConfig.baseUrl || 'http://localhost:11434';
@@ -157,12 +168,23 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
         buf += decoder.decode(value, { stream: true });
         for (const part of buf.split('\n\n')) {
           const line = part.replace(/^data: /, '').trim();
-          if (!line) { buf = ''; continue; }
+          if (!line) {
+            buf = '';
+            continue;
+          }
           try {
             const ev = JSON.parse(line);
             if (ev.type === 'chunk') received = true;
-            if (ev.type === 'done') { setTestStatus(received ? '✓ Connected successfully' : '✓ Connected (no content)'); setTestStatusClass('ok'); return; }
-            if (ev.type === 'error') { setTestStatus(`✗ ${ev.message}`); setTestStatusClass('err'); return; }
+            if (ev.type === 'done') {
+              setTestStatus(received ? '✓ Connected successfully' : '✓ Connected (no content)');
+              setTestStatusClass('ok');
+              return;
+            }
+            if (ev.type === 'error') {
+              setTestStatus(`✗ ${ev.message}`);
+              setTestStatusClass('err');
+              return;
+            }
           } catch {}
         }
       }
@@ -193,25 +215,58 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
           <div className="settings-section-grid">
             <div className="ado-field">
               <label htmlFor="adoOrg">ADO Organisation</label>
-              <input id="adoOrg" value={org} onChange={(e) => setOrg(e.target.value)} placeholder="e.g. MyOrganisation" />
-              {envVal('ADO_ORG') && <span className="ado-env-hint">Server default: {envVal('ADO_ORG')}</span>}
+              <input
+                id="adoOrg"
+                value={org}
+                onChange={(e) => setOrg(e.target.value)}
+                placeholder="e.g. MyOrganisation"
+              />
+              {envVal('ADO_ORG') && (
+                <span className="ado-env-hint">Server default: {envVal('ADO_ORG')}</span>
+              )}
             </div>
             <div className="ado-field">
               <label htmlFor="adoProject">ADO Project</label>
-              <input id="adoProject" value={project} onChange={(e) => setProject(e.target.value)} placeholder="e.g. MyProject" />
-              {envVal('ADO_PROJECT') && <span className="ado-env-hint">Server default: {envVal('ADO_PROJECT')}</span>}
+              <input
+                id="adoProject"
+                value={project}
+                onChange={(e) => setProject(e.target.value)}
+                placeholder="e.g. MyProject"
+              />
+              {envVal('ADO_PROJECT') && (
+                <span className="ado-env-hint">Server default: {envVal('ADO_PROJECT')}</span>
+              )}
             </div>
             <div className="ado-field">
-              <label htmlFor="adoChromePath">Chrome Path <span style={{ fontWeight: 400, color: '#9ca3af', textTransform: 'none' }}>(optional)</span></label>
-              <input id="adoChromePath" value={chromePath} onChange={(e) => setChromePath(e.target.value)} placeholder="Auto-detected if left empty" />
-              {envVal('CHROME_PATH') && <span className="ado-env-hint">Server default: {envVal('CHROME_PATH')}</span>}
+              <label htmlFor="adoChromePath">
+                Chrome Path{' '}
+                <span style={{ fontWeight: 400, color: '#9ca3af', textTransform: 'none' }}>
+                  (optional)
+                </span>
+              </label>
+              <input
+                id="adoChromePath"
+                value={chromePath}
+                onChange={(e) => setChromePath(e.target.value)}
+                placeholder="Auto-detected if left empty"
+              />
+              {envVal('CHROME_PATH') && (
+                <span className="ado-env-hint">Server default: {envVal('CHROME_PATH')}</span>
+              )}
             </div>
           </div>
           <div className="action-bar" style={{ marginTop: 0, marginBottom: 0 }}>
             <button className="btn btn-primary btn-sm" onClick={saveAll}>
               <span className="material-icons">save</span> Save Settings
             </button>
-            {saveIndicator && <span className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`} style={{ marginLeft: 10 }}>{saveIndicator}</span>}
+            {saveIndicator && (
+              <span
+                className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`}
+                style={{ marginLeft: 10 }}
+              >
+                {saveIndicator}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -225,14 +280,21 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
         </div>
         <div className="ado-card-body">
           <p className="ado-hint">
-            Choose which AI provider generates your test scenarios. API keys set via <code>.env</code> are loaded server-side; you can override them here.
+            Choose which AI provider generates your test scenarios. API keys set via{' '}
+            <code>.env</code> are loaded server-side; you can override them here.
           </p>
 
           <div className="ado-field" style={{ marginBottom: 16 }}>
             <label htmlFor="adoLlmProvider">Provider</label>
-            <select id="adoLlmProvider" value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
+            <select
+              id="adoLlmProvider"
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value)}
+            >
               {(config.providers || []).map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
           </div>
@@ -241,14 +303,29 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
             {currentProvider?.configFields?.map((field) => {
               const val = providerConfig[field.key] ?? field.defaultValue ?? '';
               if (field.type === 'select') {
-                const options = field.key === 'model' ? (models.length ? models : field.options || []) : (field.options || []);
+                const options =
+                  field.key === 'model'
+                    ? models.length
+                      ? models
+                      : field.options || []
+                    : field.options || [];
                 return (
                   <div key={field.key} className="provider-config-field">
                     <label>{field.label}</label>
-                    <select className="input" value={val} onChange={(e) => updateConfigField(field.key, e.target.value)}>
-                      {options.map((o) => <option key={o} value={o}>{o}</option>)}
+                    <select
+                      className="input"
+                      value={val}
+                      onChange={(e) => updateConfigField(field.key, e.target.value)}
+                    >
+                      {options.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
                     </select>
-                    {field.envValue && <span className="ado-env-hint">Server default: {field.envValue}</span>}
+                    {field.envValue && (
+                      <span className="ado-env-hint">Server default: {field.envValue}</span>
+                    )}
                   </div>
                 );
               }
@@ -257,36 +334,67 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
               return (
                 <div key={field.key} className="provider-config-field">
                   <label>{field.label}</label>
-                  <input type={inputType} className="input" value={showVal} placeholder={field.placeholder || ''} onChange={(e) => updateConfigField(field.key, e.target.value)} />
-                  {field.envValue && field.key !== 'apiKey' && <span className="ado-env-hint">Server default: {field.envValue}</span>}
+                  <input
+                    type={inputType}
+                    className="input"
+                    value={showVal}
+                    placeholder={field.placeholder || ''}
+                    onChange={(e) => updateConfigField(field.key, e.target.value)}
+                  />
+                  {field.envValue && field.key !== 'apiKey' && (
+                    <span className="ado-env-hint">Server default: {field.envValue}</span>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          <div className="action-bar" style={{ marginTop: 16, marginBottom: 0, justifyContent: 'flex-start' }}>
+          <div
+            className="action-bar"
+            style={{ marginTop: 16, marginBottom: 0, justifyContent: 'flex-start' }}
+          >
             <button className="btn btn-primary btn-sm" onClick={saveAll}>
               <span className="material-icons">save</span> Save
             </button>
-            {saveIndicator && <span className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`} style={{ marginLeft: 10 }}>{saveIndicator}</span>}
+            {saveIndicator && (
+              <span
+                className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`}
+                style={{ marginLeft: 10 }}
+              >
+                {saveIndicator}
+              </span>
+            )}
             <button className="btn btn-outline btn-sm" onClick={testConnection}>
               <span className="material-icons">network_check</span> Test Connection
             </button>
-            <button className="btn btn-outline btn-sm" onClick={refreshModels} disabled={refreshing}>
-              <span className="material-icons">refresh</span> {refreshing ? 'Refreshing…' : 'Refresh Models'}
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={refreshModels}
+              disabled={refreshing}
+            >
+              <span className="material-icons">refresh</span>{' '}
+              {refreshing ? 'Refreshing…' : 'Refresh Models'}
             </button>
-            <span className={`ado-parse-status${testStatusClass ? ` ${testStatusClass}` : ''}`} style={{ marginLeft: 10, flex: 1 }}>{testStatus}</span>
+            <span
+              className={`ado-parse-status${testStatusClass ? ` ${testStatusClass}` : ''}`}
+              style={{ marginLeft: 10, flex: 1 }}
+            >
+              {testStatus}
+            </span>
           </div>
 
           {config.envExample && (
             <div style={{ marginTop: 20 }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowEnvExample(!showEnvExample)}>
-                <span className="material-icons" style={{ fontSize: 16 }}>{showEnvExample ? 'expand_less' : 'expand_more'}</span>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setShowEnvExample(!showEnvExample)}
+              >
+                <span className="material-icons" style={{ fontSize: 16 }}>
+                  {showEnvExample ? 'expand_less' : 'expand_more'}
+                </span>
                 {showEnvExample ? 'Hide' : 'Show'} .env Example
               </button>
-              {showEnvExample && (
-                <pre className="ado-env-example">{config.envExample}</pre>
-              )}
+              {showEnvExample && <pre className="ado-env-example">{config.envExample}</pre>}
             </div>
           )}
         </div>

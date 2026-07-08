@@ -1,4 +1,4 @@
-export async function callLlm({ provider, providers, systemPrompt, userMessage, onChunk, onDone, onError }) {
+export async function callLlm({ provider, systemPrompt, userMessage, onChunk, onDone, onError }) {
   let res;
   try {
     res = await fetch('/api/llm/generate', {
@@ -38,7 +38,9 @@ export async function callLlm({ provider, providers, systemPrompt, userMessage, 
           if (ev.type === 'chunk') onChunk?.(ev.text);
           else if (ev.type === 'done') onDone?.();
           else if (ev.type === 'error') onError?.(ev.message);
-        } catch { console.warn('LLM SSE parse error', line.slice(0, 100)); }
+        } catch {
+          console.warn('LLM SSE parse error', line.slice(0, 100));
+        }
       }
     }
   } catch (err) {

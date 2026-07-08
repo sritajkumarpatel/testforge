@@ -1,9 +1,21 @@
 "use strict";
 
+/**
+ * @file Orchestrated multi-agent pipeline for TestForge.
+ */
+
 const fs = require("fs");
 const path = require("path");
+const logger = require("./logger");
+const { callLlmWithRetry } = require("./llm-caller");
+const config = require("./config");
+const { classifierOutputSchema, validate } = require("./validators");
+require("./types");
 
+/** @type {string} */
 const AGENTS_DIR = path.join(__dirname, "agents");
+/** @type {string} */
+const LOGS_DIR = config.logsDirPath;
 
 const AGENT_FILES = {
   "requirements-analyst": "01-requirements-analyst.md",
@@ -26,6 +38,12 @@ const AGENT_LABELS = {
 
 const CLASSIFIER_ORDER = ["ui-agent", "api-agent", "mock-agent"];
 
+/**
+ * Load an agent prompt markdown file.
+ * @param {string} agentId
+ * @param {"regular"|"bdd"} mode
+ * @returns {{id: string, name: string, file: string, prompt: string}}
+ */
 function loadAgentPrompt(agentId, mode = "regular") {
   let resolvedId = agentId;
   if (agentId === "test-case-writer" && mode === "bdd") {
@@ -49,15 +67,57 @@ function loadAgentPrompts() {
   return Object.keys(AGENT_FILES).map((id) => loadAgentPrompt(id));
 }
 
+function stateFilePath(runId) {
+  return path.join(LOGS_DIR, `${runId}-state.json`);
+}
+
+function persistRunState(runId, state) {
+  try {
+    fs.writeFileSync(stateFilePath(runId), JSON.stringify(state, null, 2));
+  } catch (err) {
+    logger.warn({ runId, err: err.message }, "Failed to persist run state");
+  }
+}
+
+function buildRunState({
+  runId,
+  status,
+  currentAgent,
+  agentRuns,
+  classifierResult,
+  error,
+  finalOutput,
+}) {
+  return {
+    runId,
+    status,
+    currentAgent,
+    completedAgents: agentRuns.map((run) => ({
+      agentId: run.agentId,
+      name: run.name,
+      status: run.status,
+      startedAt: run.startedAt,
+      endedAt: run.endedAt,
+    })),
+    classifierDecision: classifierResult
+      ? {
+          decision: classifierResult.requirementTypes,
+          reasoning: classifierResult.reasoning,
+          plannedAgents: classifierResult.nextAgents,
+          status: classifierResult.status,
+        }
+      : null,
+    error,
+    finalOutput,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 function generateRunId() {
   const now = new Date();
   const ts = now.toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const rand = Math.random().toString(36).slice(2, 8);
   return `tf-${ts}-${rand}`;
-}
-
-function formatDurationMs(start, end) {
-  return `${(end - start).toFixed(0)}ms`;
 }
 
 function buildTokenNote(usage) {
@@ -70,7 +130,25 @@ function buildTokenNote(usage) {
   return null;
 }
 
-async function callAgent({ send, agentId, userMessage, callLlm, previousOutputs = [], mode = "regular" }) {
+/**
+ * Execute a single agent with retry, timeout, and streaming.
+ * @param {Object} params
+ * @param {Function} params.send
+ * @param {string} params.agentId
+ * @param {string} params.userMessage
+ * @param {Function} params.callLlm
+ * @param {string[]} [params.previousOutputs]
+ * @param {"regular"|"bdd"} [params.mode]
+ * @returns {Promise<AgentRun>}
+ */
+async function callAgent({
+  send,
+  agentId,
+  userMessage,
+  callLlm,
+  previousOutputs = [],
+  mode = "regular",
+}) {
   const agent = loadAgentPrompt(agentId, mode);
 
   send({ type: "agent-start", agent: agent.name, agentId });
@@ -79,27 +157,39 @@ async function callAgent({ send, agentId, userMessage, callLlm, previousOutputs 
   const enrichedUserMessage = previousOutputs.length
     ? `${userMessage}\n\n---\n\nContext from previous agents:\n\n${previousOutputs.join("\n\n---\n\n")}`
     : userMessage;
-
   send({ type: "agent-stream-start", agent: agent.name, agentId });
 
   const startedAt = new Date().toISOString();
   let outputBuffer = "";
   let hasStreamed = false;
   let errorMessage = null;
+  let inputTokens = null;
+  let outputTokens = null;
+  let tokenNote = null;
 
-  const usage = await callLlm({
-    systemPrompt,
-    userMessage: enrichedUserMessage,
-    onChunk(text) {
-      outputBuffer += text;
-      hasStreamed = true;
-      send({ type: "agent-chunk", agentId, text });
-    },
-    onError(msg) {
-      errorMessage = msg;
-      send({ type: "agent-error", agentId, message: msg });
-    },
-  });
+  try {
+    const usage = await callLlmWithRetry({
+      callLlm,
+      systemPrompt,
+      userMessage: enrichedUserMessage,
+      onChunk(text) {
+        outputBuffer += text;
+        hasStreamed = true;
+        send({ type: "agent-chunk", agentId, text });
+      },
+      onError(msg) {
+        errorMessage = msg;
+        send({ type: "agent-error", agentId, message: msg });
+      },
+    });
+
+    inputTokens = usage?.inputTokens ?? null;
+    outputTokens = usage?.outputTokens ?? null;
+    tokenNote = buildTokenNote(usage);
+  } catch (err) {
+    errorMessage = err.message;
+    logger.error({ agentId, error: err.message }, "Agent failed after retries");
+  }
 
   const endedAt = new Date().toISOString();
 
@@ -108,6 +198,7 @@ async function callAgent({ send, agentId, userMessage, callLlm, previousOutputs 
   }
 
   const status = errorMessage ? "error" : "success";
+
   send({ type: "agent-done", agent: agent.name, agentId, status, output: outputBuffer });
 
   return {
@@ -118,23 +209,28 @@ async function callAgent({ send, agentId, userMessage, callLlm, previousOutputs 
     endedAt,
     output: outputBuffer,
     error: errorMessage,
-    inputTokens: usage?.inputTokens ?? null,
-    outputTokens: usage?.outputTokens ?? null,
-    tokenNote: buildTokenNote(usage),
+    inputTokens,
+    outputTokens,
+    tokenNote,
   };
 }
 
+/**
+ * Parse and validate classifier JSON output.
+ * @param {string} text
+ * @returns {{requirementTypes: string[], reasoning: string, nextAgents: string[], executionMode: string}}
+ */
 function parseClassifierOutput(text) {
   const cleaned = text.trim();
-  let plan;
+  let raw;
   try {
-    plan = JSON.parse(cleaned);
+    raw = JSON.parse(cleaned);
   } catch (err) {
     // Some models wrap JSON in markdown fences
     const match = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (match) {
       try {
-        plan = JSON.parse(match[1].trim());
+        raw = JSON.parse(match[1].trim());
       } catch (innerErr) {
         throw new Error(`Classifier returned invalid JSON: ${innerErr.message}`);
       }
@@ -143,21 +239,50 @@ function parseClassifierOutput(text) {
     }
   }
 
-  const nextAgents = Array.isArray(plan.nextAgents) ? plan.nextAgents : [];
-  const orderedAgents = CLASSIFIER_ORDER.filter((id) => nextAgents.includes(id));
+  const validation = validate(classifierOutputSchema, raw);
+  if (!validation.success) {
+    throw new Error(`Classifier output validation failed: ${validation.errors.join("; ")}`);
+  }
+
+  const plan = validation.data;
+  const orderedAgents = CLASSIFIER_ORDER.filter((id) => plan.nextAgents.includes(id));
 
   return {
-    requirementTypes: Array.isArray(plan.requirementTypes) ? plan.requirementTypes : [],
+    requirementTypes: plan.requirementTypes,
     reasoning: plan.reasoning || "",
     nextAgents: orderedAgents,
     executionMode: plan.executionMode || "sequential",
   };
 }
 
-function buildAuditLog({ runId, input, classifierResult, agentRuns, finalOutput, startedAt, endedAt, metadata = {} }) {
+/**
+ * Build the full audit log object.
+ * @param {Object} params
+ * @param {string} params.runId
+ * @param {string} params.input
+ * @param {ClassifierResult} params.classifierResult
+ * @param {AgentRun[]} params.agentRuns
+ * @param {string} params.finalOutput
+ * @param {string} params.startedAt
+ * @param {string} params.endedAt
+ * @param {Object} [params.metadata]
+ * @returns {AuditLog}
+ */
+function buildAuditLog({
+  runId,
+  input,
+  classifierResult,
+  agentRuns,
+  finalOutput,
+  startedAt,
+  endedAt,
+  metadata = {},
+}) {
   const totalInputTokens = agentRuns.reduce((sum, run) => sum + (run.inputTokens || 0), 0);
   const totalOutputTokens = agentRuns.reduce((sum, run) => sum + (run.outputTokens || 0), 0);
-  const anyTokenMissing = agentRuns.some((run) => run.inputTokens === null || run.outputTokens === null);
+  const anyTokenMissing = agentRuns.some(
+    (run) => run.inputTokens === null || run.outputTokens === null
+  );
 
   return {
     runId,
@@ -202,6 +327,11 @@ function buildAuditLog({ runId, input, classifierResult, agentRuns, finalOutput,
   };
 }
 
+/**
+ * Convert an audit log to a concise TXT export.
+ * @param {AuditLog} log
+ * @returns {string}
+ */
 function exportLogAsTxt(log) {
   const lines = [];
   const meta = log.metadata || {};
@@ -223,8 +353,10 @@ function exportLogAsTxt(log) {
   lines.push("-".repeat(80));
   lines.push("TOKENS");
   lines.push("-".repeat(80));
-  const inputTokens = log.totals.inputTokens != null ? String(log.totals.inputTokens) : log.totals.tokenNote;
-  const outputTokens = log.totals.outputTokens != null ? String(log.totals.outputTokens) : log.totals.tokenNote;
+  const inputTokens =
+    log.totals.inputTokens != null ? String(log.totals.inputTokens) : log.totals.tokenNote;
+  const outputTokens =
+    log.totals.outputTokens != null ? String(log.totals.outputTokens) : log.totals.tokenNote;
   lines.push(`Total tokens in:  ${inputTokens}`);
   lines.push(`Total tokens out: ${outputTokens}`);
   lines.push("");
@@ -249,13 +381,49 @@ function exportLogAsTxt(log) {
   return lines.join("\n");
 }
 
-async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regular", metadata = {} }) {
+/**
+ * Run the full orchestrated pipeline.
+ * @param {Object} params
+ * @param {Function} params.send
+ * @param {string} params.userInput
+ * @param {Function} params.callLlm
+ * @param {"regular"|"bdd"} [params.mode]
+ * @param {Object} [params.metadata]
+ * @returns {Promise<AuditLog>}
+ */
+async function runOrchestratedPipeline({
+  send,
+  userInput,
+  callLlm,
+  mode = "regular",
+  metadata = {},
+}) {
   const runId = generateRunId();
   const startedAt = new Date().toISOString();
+  const enrichedMetadata = { ...metadata, mode };
 
   send({ type: "pipeline-start", runId, mode, message: "Starting orchestrated pipeline." });
+  logger.info({ runId, mode }, "Pipeline started");
 
   const agentRuns = [];
+  const updateState = (status, currentAgent, error = null, finalOutput = null) => {
+    persistRunState(
+      runId,
+      buildRunState({
+        runId,
+        status,
+        currentAgent,
+        agentRuns,
+        classifierResult: agentRuns.find((r) => r.agentId === "classifier")
+          ? classifierResult
+          : null,
+        error,
+        finalOutput,
+      })
+    );
+  };
+
+  updateState("running", "requirements-analyst");
 
   // Step 1: Requirements Analyst
   const analystRun = await callAgent({
@@ -266,18 +434,26 @@ async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regul
     mode,
   });
   agentRuns.push(analystRun);
+  updateState("running", "classifier");
 
   if (analystRun.status === "error") {
     const log = buildAuditLog({
       runId,
       input: userInput,
-      classifierResult: { status: "skipped", output: "", reasoning: "", nextAgents: [], requirementTypes: [] },
+      classifierResult: {
+        status: "skipped",
+        output: "",
+        reasoning: "",
+        nextAgents: [],
+        requirementTypes: [],
+      },
       agentRuns,
       finalOutput: "",
       startedAt,
       endedAt: new Date().toISOString(),
-      metadata,
+      metadata: enrichedMetadata,
     });
+    updateState("error", null, analystRun.error);
     send({ type: "pipeline-error", message: analystRun.error, log });
     send({ type: "pipeline-done", output: "", log });
     return log;
@@ -343,6 +519,8 @@ async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regul
     }
   }
 
+  updateState("running", classifierResult.nextAgents[0] || null);
+
   send({
     type: "classifier-decision",
     decision: classifierResult.requirementTypes,
@@ -360,9 +538,10 @@ async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regul
       finalOutput: "",
       startedAt,
       endedAt: new Date().toISOString(),
-      metadata,
+      metadata: enrichedMetadata,
     });
     const message = classifierResult.error || "No specialist agents planned by classifier.";
+    updateState("error", null, message);
     send({ type: "pipeline-error", message, log });
     send({ type: "pipeline-done", output: "", log });
     return log;
@@ -370,7 +549,11 @@ async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regul
 
   // Step 3: Specialist agents (sequential)
   const specialistOutputs = [];
-  for (const agentId of classifierResult.nextAgents) {
+  for (let i = 0; i < classifierResult.nextAgents.length; i++) {
+    const agentId = classifierResult.nextAgents[i];
+    const nextAgent = classifierResult.nextAgents[i + 1] || "test-case-writer";
+    updateState("running", agentId);
+
     const run = await callAgent({
       send,
       agentId,
@@ -381,6 +564,7 @@ async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regul
     });
     agentRuns.push(run);
     specialistOutputs.push(run.output);
+    updateState("running", nextAgent);
 
     if (run.status === "error") {
       const log = buildAuditLog({
@@ -391,8 +575,9 @@ async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regul
         finalOutput: "",
         startedAt,
         endedAt: new Date().toISOString(),
-        metadata,
+        metadata: enrichedMetadata,
       });
+      updateState("error", null, run.error);
       send({ type: "pipeline-error", message: run.error, log });
       send({ type: "pipeline-done", output: "", log });
       return log;
@@ -400,6 +585,7 @@ async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regul
   }
 
   // Step 4: Test Case Writer
+  updateState("running", "test-case-writer");
   const aggregateContext = specialistOutputs.join("\n\n=== END OF SPECIALIST OUTPUT ===\n\n");
   const writerRun = await callAgent({
     send,
@@ -421,13 +607,17 @@ async function runOrchestratedPipeline({ send, userInput, callLlm, mode = "regul
     finalOutput,
     startedAt,
     endedAt,
-    metadata,
+    metadata: enrichedMetadata,
   });
 
   if (writerRun.status === "error") {
+    updateState("error", null, writerRun.error, finalOutput);
     send({ type: "pipeline-error", message: writerRun.error, log });
+  } else {
+    updateState("completed", null, null, finalOutput);
   }
 
+  logger.info({ runId, status: writerRun.status }, "Pipeline finished");
   send({ type: "pipeline-done", output: finalOutput, log });
   return log;
 }

@@ -31,6 +31,23 @@ jobs:
       - name: Check server syntax
         run: node --check server.js agent-pipeline.js llm-providers.js
 
+      - name: Check server formatting
+        run: npm run format:check
+
+      - name: Lint server
+        run: npm run lint
+
+      - name: Run server tests
+        run: npm test
+
       - name: Build client
         working-directory: client
         run: npm run build
+
+      - name: Check client formatting
+        working-directory: client
+        run: npm run format:check
+
+      - name: Lint client
+        working-directory: client
+        run: npm run lint

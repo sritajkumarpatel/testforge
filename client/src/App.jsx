@@ -20,7 +20,10 @@ export default function App() {
   const handleTabSwitch = (tab) => {
     if (agentsRunning) {
       if (confirm('Agents are still running. Cancel and switch?')) {
-        if (abortRef.current) { abortRef.current.abort(); abortRef.current = null; }
+        if (abortRef.current) {
+          abortRef.current.abort();
+          abortRef.current = null;
+        }
         setAgentsRunning(false);
         setActiveTab(tab);
       }
@@ -58,13 +61,26 @@ export default function App() {
         <div className="app-header-inner">
           <div className="app-header-brand">
             <span className="app-header-logo">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
+              </svg>
             </span>
             <span className="app-header-name">TestForge</span>
           </div>
           <div className="app-header-actions">
             <button className="btn btn-ghost btn-sm" onClick={resetAll}>
-              <span className="material-icons" style={{ fontSize: 16 }}>refresh</span>
+              <span className="material-icons" style={{ fontSize: 16 }}>
+                refresh
+              </span>
               Reset
             </button>
           </div>
@@ -74,7 +90,13 @@ export default function App() {
       <div className="page-wrap">
         <TabNav activeTab={activeTab} onSwitch={handleTabSwitch} />
 
-        <div style={{ display: activeTab === 'generator' ? 'flex' : 'none', flexDirection: 'column', gap: 24 }}>
+        <div
+          style={{
+            display: activeTab === 'generator' ? 'flex' : 'none',
+            flexDirection: 'column',
+            gap: 24,
+          }}
+        >
           <GeneratorTab
             config={config}
             provider={provider}
@@ -97,7 +119,13 @@ export default function App() {
           />
         </div>
 
-        <div style={{ display: activeTab === 'settings' ? 'flex' : 'none', flexDirection: 'column', gap: 24 }}>
+        <div
+          style={{
+            display: activeTab === 'settings' ? 'flex' : 'none',
+            flexDirection: 'column',
+            gap: 24,
+          }}
+        >
           <SettingsTab
             config={config}
             setConfig={setConfig}

@@ -48,61 +48,61 @@ No manual test writing. No tedious copy-paste into ADO. Just your requirements +
 Requirements → [Requirements Analyst] → [Classifier] → [UI / API / Mock Designers] → [Test Case Writer] → ADO Test Cases
 ```
 
-| Agent | Role | Specialism |
-|---|---|---|
-| **Requirements Analyst** | Parses raw input into structured functional requirements | NLP extraction, ambiguity detection, gap analysis |
-| **Classifier** | Decides whether the requirement is UI, API, Mock, or mixed | Requirement-type routing |
-| **UI Test Designer** | Designs UI/UX scenarios | Forms, navigation, validation, accessibility, responsive behavior |
-| **API Test Designer** | Designs API scenarios | HTTP contracts, auth, status codes, schema, rate limits |
-| **Mock & Service Virtualization Designer** | Provides mock/stub guidelines | External dependency simulation, contract testing |
-| **Test Case Writer** | Produces a JSON array of ADO-ready test case objects | Step-by-step imperative actions, precondition → verification |
+| Agent                                      | Role                                                       | Specialism                                                        |
+| ------------------------------------------ | ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Requirements Analyst**                   | Parses raw input into structured functional requirements   | NLP extraction, ambiguity detection, gap analysis                 |
+| **Classifier**                             | Decides whether the requirement is UI, API, Mock, or mixed | Requirement-type routing                                          |
+| **UI Test Designer**                       | Designs UI/UX scenarios                                    | Forms, navigation, validation, accessibility, responsive behavior |
+| **API Test Designer**                      | Designs API scenarios                                      | HTTP contracts, auth, status codes, schema, rate limits           |
+| **Mock & Service Virtualization Designer** | Provides mock/stub guidelines                              | External dependency simulation, contract testing                  |
+| **Test Case Writer**                       | Produces a JSON array of ADO-ready test case objects       | Step-by-step imperative actions, precondition → verification      |
 
 Each agent receives the full output of the previous agent, building context sequentially. Supports both **regular** and **BDD (Gherkin)** test formats.
 
 ## Why TestForge?
 
-| | Manual Process | TestForge |
-|---|---|---|
-| ⏱ **Time per 100 test cases** | 2–3 days | 2–3 minutes |
+|                                       | Manual Process                  | TestForge                                     |
+| ------------------------------------- | ------------------------------- | --------------------------------------------- |
+| ⏱ **Time per 100 test cases**         | 2–3 days                        | 2–3 minutes                                   |
 | 🧠 **Test design technique coverage** | Depends on individual expertise | 8 systematic techniques applied automatically |
-| 📋 **Coverage gaps** | Common (fatigue, time pressure) | Traceable per-scenario with technique tagging |
-| 🔄 **Re-work on requirement changes** | Days of manual rewriting | Re-run the pipeline |
-| 🏗 **ADO creation** | Manual copy-paste per test case | One-click bulk creation via Chrome CDP |
-| 💰 **Cost** | Salaried QA engineer hours | Free (Ollama) or pennies in API costs |
+| 📋 **Coverage gaps**                  | Common (fatigue, time pressure) | Traceable per-scenario with technique tagging |
+| 🔄 **Re-work on requirement changes** | Days of manual rewriting        | Re-run the pipeline                           |
+| 🏗 **ADO creation**                    | Manual copy-paste per test case | One-click bulk creation via Chrome CDP        |
+| 💰 **Cost**                           | Salaried QA engineer hours      | Free (Ollama) or pennies in API costs         |
 
 ## Features
 
 ### Input & Pipeline
 
-| Feature | Description |
-|---|---|
-| **3 input modes** | Upload files (PDF, Word, Markdown), fetch ADO work items, or paste text |
-| **Streaming pipeline** | Watch each agent reason in real time via SSE |
-| **Regular + BDD output** | Choose between structured test cases or Gherkin-style scenarios |
-| **JSON import/export** | Download raw output, edit externally, re-upload |
+| Feature                  | Description                                                             |
+| ------------------------ | ----------------------------------------------------------------------- |
+| **3 input modes**        | Upload files (PDF, Word, Markdown), fetch ADO work items, or paste text |
+| **Streaming pipeline**   | Watch each agent reason in real time via SSE                            |
+| **Regular + BDD output** | Choose between structured test cases or Gherkin-style scenarios         |
+| **JSON import/export**   | Download raw output, edit externally, re-upload                         |
 
 ### Azure DevOps Integration
 
-| Feature | Description |
-|---|---|
-| **One-click ADO creation** | Uses your browser session via Playwright CDP — no PAT needed |
+| Feature                         | Description                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------- |
+| **One-click ADO creation**      | Uses your browser session via Playwright CDP — no PAT needed                       |
 | **Chrome sign-in prerequisite** | Dedicated sign-in step before loading requirements; Pipeline tracks sign-in status |
-| **Bulk work item creation** | Creates all test cases as ADO work items in parallel |
+| **Bulk work item creation**     | Creates all test cases as ADO work items in parallel                               |
 
 ### UI & UX
 
-| Feature | Description |
-|---|---|
-| **State persistence** | Input data, agent logs, and settings survive tab switches |
-| **Safe tab switching** | Confirm dialog when switching while agents are running |
+| Feature                   | Description                                                 |
+| ------------------------- | ----------------------------------------------------------- |
+| **State persistence**     | Input data, agent logs, and settings survive tab switches   |
+| **Safe tab switching**    | Confirm dialog when switching while agents are running      |
 | **Uniform settings save** | Save buttons in both Project Details and LLM Provider cards |
 
 ### LLM Support
 
-| Feature | Description |
-|---|---|
+| Feature             | Description                                             |
+| ------------------- | ------------------------------------------------------- |
 | **5 LLM providers** | Ollama (local), OpenAI, Claude, Google Gemini, OpenCode |
-| **Works offline** | Use Ollama with local models — zero cloud dependency |
+| **Works offline**   | Use Ollama with local models — zero cloud dependency    |
 
 ## Quick Start
 
@@ -142,35 +142,35 @@ Open **http://localhost:3010** in your browser.
 
 ## Screenshots
 
-> *Screenshots coming soon — see the live pipeline in action.*
+> _Screenshots coming soon — see the live pipeline in action._
 
-| Pipeline | Settings | Test Results |
-|---|---|---|
-| *(screenshot)* | *(screenshot)* | *(screenshot)* |
+| Pipeline       | Settings       | Test Results   |
+| -------------- | -------------- | -------------- |
+| _(screenshot)_ | _(screenshot)_ | _(screenshot)_ |
 
 ## Configuration
 
-| Variable | Default | Required For |
-|---|---|---|
-| `OPENAI_API_KEY` | — | OpenAI provider |
-| `CLAUDE_API_KEY` | — | Anthropic Claude |
-| `GOOGLE_API_KEY` | — | Google Gemini |
-| `OPENCODE_API_KEY` | — | OpenCode |
-| `OLLAMA_URL` | `http://localhost:11434` | Ollama (local) |
-| `ADO_ORG` / `ADO_PROJECT` | — | Pre-fills ADO settings |
-| `CHROME_PATH` | Auto-detected | One-click ADO creation |
-| `PORT` | `3010` | Server port |
+| Variable                  | Default                  | Required For           |
+| ------------------------- | ------------------------ | ---------------------- |
+| `OPENAI_API_KEY`          | —                        | OpenAI provider        |
+| `CLAUDE_API_KEY`          | —                        | Anthropic Claude       |
+| `GOOGLE_API_KEY`          | —                        | Google Gemini          |
+| `OPENCODE_API_KEY`        | —                        | OpenCode               |
+| `OLLAMA_URL`              | `http://localhost:11434` | Ollama (local)         |
+| `ADO_ORG` / `ADO_PROJECT` | —                        | Pre-fills ADO settings |
+| `CHROME_PATH`             | Auto-detected            | One-click ADO creation |
+| `PORT`                    | `3010`                   | Server port            |
 
 Full reference in [.env.example](.env.example). API keys can also be set per-session in the Settings UI.
 
 ## LLM Providers
 
-| Provider | Cost | Setup |
-|---|---|---|
-| **Ollama** | Free (local) | `ollama pull llama3.2` |
-| **OpenAI** | Pay-per-token | Set `OPENAI_API_KEY` |
-| **Claude** | Pay-per-token | Set `CLAUDE_API_KEY` |
-| **Gemini** | Free tier available | Set `GOOGLE_API_KEY` |
+| Provider     | Cost                | Setup                  |
+| ------------ | ------------------- | ---------------------- |
+| **Ollama**   | Free (local)        | `ollama pull llama3.2` |
+| **OpenAI**   | Pay-per-token       | Set `OPENAI_API_KEY`   |
+| **Claude**   | Pay-per-token       | Set `CLAUDE_API_KEY`   |
+| **Gemini**   | Free tier available | Set `GOOGLE_API_KEY`   |
 | **OpenCode** | Free tier available | Set `OPENCODE_API_KEY` |
 
 ## Project Structure
@@ -199,16 +199,16 @@ testforge/
 
 ## Tech Stack
 
-| Technology | Version | Purpose |
-|---|---|---|
-| **Node.js** | 18+ | Runtime |
-| **Express** | 4 | Web server & API routes |
-| **React** | 18 | UI framework |
-| **Vite** | 6 | Build tool & dev server |
-| **Playwright** | — | Chrome CDP for ADO creation |
-| **pdf-parse** | — | PDF text extraction |
-| **mammoth** | — | Word document parsing |
-| **multer** | — | File upload handling |
+| Technology     | Version | Purpose                     |
+| -------------- | ------- | --------------------------- |
+| **Node.js**    | 18+     | Runtime                     |
+| **Express**    | 4       | Web server & API routes     |
+| **React**      | 18      | UI framework                |
+| **Vite**       | 6       | Build tool & dev server     |
+| **Playwright** | —       | Chrome CDP for ADO creation |
+| **pdf-parse**  | —       | PDF text extraction         |
+| **mammoth**    | —       | Word document parsing       |
+| **multer**     | —       | File upload handling        |
 
 ## Development
 
