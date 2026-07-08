@@ -10,7 +10,7 @@ You receive a structured requirements summary produced by the Requirements Analy
 
 ## Output Format
 
-Return ONLY a valid JSON object in the following format. Do not wrap it in markdown code fences.
+Your response must be a single JSON object. Do not include any other fields, text, markdown code block wrappers, or explanations outside of this JSON.
 
 ```json
 {
@@ -32,6 +32,6 @@ Return ONLY a valid JSON object in the following format. Do not wrap it in markd
 
 ## Constraints
 
-- Output ONLY the JSON object.
-- Do not add comments, explanations, or markdown.
-- If the requirement is ambiguous and cannot be classified, set `requirementTypes` to `[]` and include the ambiguity in `reasoning`.
+- Output ONLY the JSON object matching the schema above. Do not output any ticket details, title, description, or custom JSON keys.
+- Do not add comments, HTML, or explanations outside of the JSON object.
+- If the requirement is ambiguous and cannot be classified, set `requirementTypes` to `[]` and specify the ambiguity in `reasoning`.

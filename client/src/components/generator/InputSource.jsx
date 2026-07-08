@@ -108,7 +108,7 @@ export default function InputSource({
 
   return (
     <div className="card card-emphasis" id="adoLoadCard">
-      <div className="ado-card-header" style={{ flexWrap: 'wrap', gap: 6 }}>
+      <div className="ado-card-header">
         <span className="ado-card-title">
           <span className="material-icons">input</span>
           Step 1: Load Requirements
@@ -116,6 +116,13 @@ export default function InputSource({
         <span className={`section-badge ${pipelineStage === 'load' ? 'active' : 'done'}`}>
           {pipelineStage === 'load' ? '● In Progress' : '✓ Loaded'}
         </span>
+      </div>
+      <div className="ado-card-body">
+        <p className="ado-hint">
+          Load requirements from a document, fetch an ADO work item, or paste text directly. The
+          three AI agents will analyze and generate test cases.
+        </p>
+
         <div className="ai-tabs">
           {['file', 'ado', 'paste'].map((t) => (
             <button
@@ -130,12 +137,6 @@ export default function InputSource({
             </button>
           ))}
         </div>
-      </div>
-      <div className="ado-card-body">
-        <p className="ado-hint">
-          Load requirements from a document, fetch an ADO work item, or paste text directly. The
-          three AI agents will analyze and generate test cases.
-        </p>
 
         {tab === 'file' && (
           <>
@@ -183,14 +184,16 @@ export default function InputSource({
         {tab === 'ado' && (
           <>
             {org && project ? (
-              <div className="settings-section-grid" style={{ marginBottom: 14 }}>
-                <div className="ado-field">
-                  <label>Organisation</label>
-                  <input value={org} readOnly className="input-readonly" />
-                </div>
-                <div className="ado-field">
-                  <label>Project</label>
-                  <input value={project} readOnly className="input-readonly" />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 14 }}>
+                <div className="settings-section-grid" style={{ gap: 16 }}>
+                  <div className="ado-field" style={{ marginBottom: 0 }}>
+                    <label>Organisation</label>
+                    <input value={org} readOnly className="input-readonly" />
+                  </div>
+                  <div className="ado-field" style={{ marginBottom: 0 }}>
+                    <label>Project</label>
+                    <input value={project} readOnly className="input-readonly" />
+                  </div>
                 </div>
                 <div className="ado-field">
                   <label>Work Item ID</label>
@@ -198,12 +201,14 @@ export default function InputSource({
                     <input
                       value={adoId}
                       onChange={(e) => setAdoId(e.target.value)}
-                      placeholder="e.g. 12345"
+                      placeholder="e.g. 1234567"
+                      style={{ flex: 1 }}
                     />
                     <button
                       className="btn btn-outline btn-sm"
                       onClick={fetchAdo}
                       disabled={loading}
+                      style={{ paddingLeft: 16, paddingRight: 16 }}
                     >
                       <span className="material-icons">download</span> Fetch
                     </button>

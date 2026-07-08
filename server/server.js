@@ -121,7 +121,7 @@ app.use("/api", generalRateLimiter);
 app.use("/api", requireAuth);
 
 // Serve the React build (must be built before deployment)
-const clientDist = path.join(__dirname, "client", "dist");
+const clientDist = path.join(__dirname, "..", "client", "dist");
 if (fs.existsSync(clientDist)) {
   app.use(express.static(clientDist));
 }
@@ -538,7 +538,7 @@ app.post("/api/ado/fetch-work-item", async (req, res) => {
     if (browser && !config.chrome.keepOpen) {
       try {
         await browser.close();
-      } catch {}
+      } catch { }
     }
   }
 });

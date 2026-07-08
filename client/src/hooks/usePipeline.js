@@ -17,8 +17,8 @@ export default function usePipeline({
   const stripFences = (s) =>
     s.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
-  const pushLog = useCallback((type, message, text) => {
-    setAgentLogs((prev) => [...prev, { type, message, text }]);
+  const pushLog = useCallback((type, message, text, agentId) => {
+    setAgentLogs((prev) => [...prev, { type, message, text, agentId }]);
   }, []);
 
   const handleParse = useCallback(
@@ -87,6 +87,7 @@ export default function usePipeline({
 
       const controller = new AbortController();
       abortRef.current = controller;
+      let hasError = false;
 
       pushLog('system', 'Starting orchestrated pipeline…');
 
@@ -135,19 +136,19 @@ export default function usePipeline({
               switch (ev.type) {
                 case 'pipeline-start':
                   setRunId(ev.runId || '');
-                  pushLog('system', `Run ID: ${ev.runId || 'N/A'}`);
+                  pushLog('system', `Run ID: ${ev.runId || 'N/A'}`, '', 'system');
                   break;
 
                 case 'classifier-decision':
-                  pushLog('done', `Classifier detected: ${(ev.decision || []).join(', ') || 'none'}`);
+                  pushLog('done', `Classifier detected: ${(ev.decision || []).join(', ') || 'none'}`, '', 'classifier');
                   if (ev.reasoning) {
-                    pushLog('system', `Reasoning: ${ev.reasoning}`);
+                    pushLog('system', `Reasoning: ${ev.reasoning}`, '', 'classifier');
                   }
                   break;
 
                 case 'agent-start':
                   agentStreamBuf = '';
-                  pushLog('agent', `🧠 ${ev.agent} analyzing…`);
+                  pushLog('agent', `🧠 ${ev.agent} analyzing…`, '', ev.agentId);
                   break;
 
                 case 'agent-chunk':
@@ -156,30 +157,32 @@ export default function usePipeline({
                     const preview = agentStreamBuf.slice(-500);
                     setAgentLogs((prev) => {
                       const last = prev[prev.length - 1];
-                      if (last && last.type === 'stream') {
+                      if (last && last.type === 'stream' && last.agentId === ev.agentId) {
                         return [...prev.slice(0, -1), { ...last, text: preview }];
                       }
-                      return [...prev, { type: 'stream', message: '', text: preview }];
+                      return [...prev, { type: 'stream', message: '', text: preview, agentId: ev.agentId }];
                     });
                   }
                   break;
 
                 case 'agent-done':
-                  pushLog('done', `✓ ${ev.agent} complete (${ev.status})`);
+                  pushLog('done', `✓ ${ev.agent} complete (${ev.status})`, '', ev.agentId);
                   break;
 
                 case 'agent-error':
-                  pushLog('error', `✗ ${ev.agent || 'Agent'} error: ${ev.message}`);
+                  pushLog('error', `✗ ${ev.agent || 'Agent'} error: ${ev.message}`, '', ev.agentId);
                   break;
 
                 case 'pipeline-error':
-                  pushLog('error', `✗ Pipeline error: ${ev.message}`);
+                  hasError = true;
+                  pushLog('error', `✗ Pipeline error: ${ev.message}`, '', 'system');
                   setAgentsRunning(false);
                   abortRef.current = null;
                   break;
 
                 case 'pipeline-done':
-                  pushLog('done', '✓ All agents finished. Parsing test cases…');
+                  if (hasError) break;
+                  pushLog('done', '✓ All agents finished. Parsing test cases…', '', 'system');
                   setJsonOutput(ev.output || '');
                   setAgentsRunning(false);
                   abortRef.current = null;
@@ -187,7 +190,7 @@ export default function usePipeline({
                   break;
 
                 case 'error':
-                  pushLog('error', `✗ ${ev.message}`);
+                  pushLog('error', `✗ ${ev.message}`, '', 'system');
                   setAgentsRunning(false);
                   abortRef.current = null;
                   break;

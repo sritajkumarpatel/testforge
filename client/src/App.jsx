@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import TabNav from './components/TabNav';
-import GeneratorTab from './components/GeneratorTab';
-import SettingsTab from './components/SettingsTab';
+import TabNav from './components/common/TabNav';
+import GeneratorTab from './components/generator/GeneratorTab';
+import SettingsTab from './components/settings/SettingsTab';
 
 const STAGES = ['load', 'generate', 'results'];
 

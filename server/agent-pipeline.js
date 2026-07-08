@@ -57,8 +57,9 @@ function loadAgentPrompt(agentId, mode = "regular") {
   let content = "";
   try {
     content = fs.readFileSync(fullPath, "utf-8");
-  } catch {
-    content = `# ${AGENT_LABELS[agentId]}\n\n(Agent file not found)`;
+  } catch (err) {
+    logger.error({ agentId, fullPath, error: err.message }, "Agent prompt file not found");
+    throw new Error(`Agent prompt file not found at ${fullPath}`);
   }
   return { id: agentId, name: AGENT_LABELS[agentId], file, prompt: content };
 }
@@ -455,7 +456,6 @@ async function runOrchestratedPipeline({
     });
     updateState("error", null, analystRun.error);
     send({ type: "pipeline-error", message: analystRun.error, log });
-    send({ type: "pipeline-done", output: "", log });
     return log;
   }
 
@@ -463,7 +463,7 @@ async function runOrchestratedPipeline({
   const classifierRun = await callAgent({
     send,
     agentId: "classifier",
-    userMessage: `Classify the following structured requirements summary and return ONLY the JSON plan:\n\n${analystRun.output}`,
+    userMessage: `Analyze the following requirements summary and output the classification decision JSON (with requirementTypes and nextAgents):\n\n${analystRun.output}`,
     callLlm,
     mode,
   });
@@ -543,7 +543,6 @@ async function runOrchestratedPipeline({
     const message = classifierResult.error || "No specialist agents planned by classifier.";
     updateState("error", null, message);
     send({ type: "pipeline-error", message, log });
-    send({ type: "pipeline-done", output: "", log });
     return log;
   }
 
@@ -579,7 +578,6 @@ async function runOrchestratedPipeline({
       });
       updateState("error", null, run.error);
       send({ type: "pipeline-error", message: run.error, log });
-      send({ type: "pipeline-done", output: "", log });
       return log;
     }
   }
@@ -615,10 +613,10 @@ async function runOrchestratedPipeline({
     send({ type: "pipeline-error", message: writerRun.error, log });
   } else {
     updateState("completed", null, null, finalOutput);
+    send({ type: "pipeline-done", output: finalOutput, log });
   }
 
   logger.info({ runId, status: writerRun.status }, "Pipeline finished");
-  send({ type: "pipeline-done", output: finalOutput, log });
   return log;
 }
 

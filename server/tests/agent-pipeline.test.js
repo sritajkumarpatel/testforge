@@ -5,7 +5,7 @@ const {
   parseClassifierOutput,
   exportLogAsTxt,
   loadAgentPrompts,
-} = require("./agent-pipeline");
+} = require("../agent-pipeline");
 
 function createMockLlm(overrides = {}) {
   return async ({ systemPrompt, onChunk }) => {

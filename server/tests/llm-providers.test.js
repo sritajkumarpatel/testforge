@@ -1,6 +1,6 @@
 "use strict";
 
-const { getProviders } = require("./llm-providers");
+const { getProviders } = require("../llm-providers");
 
 function createReadableStream(lines) {
   const encoder = new TextEncoder();
