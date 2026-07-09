@@ -1,7 +1,7 @@
 "use strict";
 
 const request = require("supertest");
-const { app } = require("./server");
+const { app } = require("../server");
 
 describe("Server routes", () => {
   test("GET /health returns ok", async () => {

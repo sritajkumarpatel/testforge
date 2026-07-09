@@ -15,13 +15,13 @@ describe("AUTH_TOKEN protection", () => {
   });
 
   test("rejects /api/config without token", async () => {
-    const { app } = require("./server");
+    const { app } = require("../server");
     const res = await request(app).get("/api/config");
     expect(res.status).toBe(401);
   });
 
   test("allows /api/config with valid bearer token", async () => {
-    const { app } = require("./server");
+    const { app } = require("../server");
     const res = await request(app)
       .get("/api/config")
       .set("Authorization", "Bearer test-secret-token");
@@ -30,7 +30,7 @@ describe("AUTH_TOKEN protection", () => {
   });
 
   test("/health remains public", async () => {
-    const { app } = require("./server");
+    const { app } = require("../server");
     const res = await request(app).get("/health");
     expect(res.status).toBe(200);
   });

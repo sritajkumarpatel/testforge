@@ -44,9 +44,14 @@ export default function CreateStep({
       alert('Parse your scenarios first.');
       return;
     }
+
+    const count = parsedScenarios.length;
+    const modeDesc = config.adoPatAvailable
+      ? 'via Personal Access Token'
+      : 'via Browser CDP Session';
     if (
       !confirm(
-        `Create ${scenarioCount} test case${scenarioCount !== 1 ? 's' : ''} in ${config.org}/${config.project}?`
+        `Create ${count} test case${count !== 1 ? 's' : ''} in ${config.org}/${config.project} ${modeDesc}?`
       )
     )
       return;
@@ -55,11 +60,13 @@ export default function CreateStep({
     setResultRows([]);
     setLogs([]);
     setPipelineStage('create');
-    appendLog(`Starting — ${scenarioCount} scenario${scenarioCount !== 1 ? 's' : ''}`, 'info');
+    appendLog(`Starting — ${count} scenario${count !== 1 ? 's' : ''} ${modeDesc}`, 'info');
+
+    const endpoint = config.adoPatAvailable ? '/api/ado/run-pat' : '/api/ado/run';
 
     let response;
     try {
-      response = await fetch('/api/ado/run', {
+      response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scenarios: parsedScenarios, config }),
@@ -78,8 +85,6 @@ export default function CreateStep({
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
-    let totalCreated = 0,
-      totalFailed = 0;
 
     try {
       while (true) {

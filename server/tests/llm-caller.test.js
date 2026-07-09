@@ -1,6 +1,6 @@
 "use strict";
 
-const { callLlmWithRetry } = require("./llm-caller");
+const { callLlmWithRetry } = require("../llm-caller");
 
 describe("callLlmWithRetry", () => {
   test("returns usage on first successful call", async () => {

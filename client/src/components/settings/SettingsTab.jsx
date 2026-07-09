@@ -255,19 +255,6 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
               )}
             </div>
           </div>
-          <div className="action-bar" style={{ marginTop: 0, marginBottom: 0 }}>
-            <button className="btn btn-primary btn-sm" onClick={saveAll}>
-              <span className="material-icons">save</span> Save Settings
-            </button>
-            {saveIndicator && (
-              <span
-                className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`}
-                style={{ marginLeft: 10 }}
-              >
-                {saveIndicator}
-              </span>
-            )}
-          </div>
         </div>
       </div>
 
@@ -310,7 +297,7 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
                       : field.options || []
                     : field.options || [];
                 return (
-                  <div key={field.key} className="provider-config-field">
+                  <div key={field.key} className="ado-field">
                     <label>{field.label}</label>
                     <select
                       className="input"
@@ -332,7 +319,7 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
               const inputType = field.type === 'password' ? 'password' : 'text';
               const showVal = field.type === 'password' && val === '••••••' ? '' : val;
               return (
-                <div key={field.key} className="provider-config-field">
+                <div key={field.key} className="ado-field">
                   <label>{field.label}</label>
                   <input
                     type={inputType}
@@ -353,17 +340,6 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
             className="action-bar"
             style={{ marginTop: 16, marginBottom: 0, justifyContent: 'flex-start' }}
           >
-            <button className="btn btn-primary btn-sm" onClick={saveAll}>
-              <span className="material-icons">save</span> Save
-            </button>
-            {saveIndicator && (
-              <span
-                className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`}
-                style={{ marginLeft: 10 }}
-              >
-                {saveIndicator}
-              </span>
-            )}
             <button className="btn btn-outline btn-sm" onClick={testConnection}>
               <span className="material-icons">network_check</span> Test Connection
             </button>
@@ -396,6 +372,30 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
               </button>
               {showEnvExample && <pre className="ado-env-example">{config.envExample}</pre>}
             </div>
+          )}
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          marginTop: 24,
+          gap: 8,
+        }}
+      >
+        <button className="btn btn-primary btn-lg" onClick={saveAll} style={{ minWidth: 200 }}>
+          <span className="material-icons">save</span> Save All Settings
+        </button>
+        <div style={{ height: 20 }}>
+          {saveIndicator && (
+            <span
+              className={`ado-parse-status ${saveIndicator.startsWith('✓') ? 'ok' : 'err'}`}
+              style={{ display: 'inline-flex', alignItems: 'center', margin: 0, fontSize: 13 }}
+            >
+              {saveIndicator}
+            </span>
           )}
         </div>
       </div>

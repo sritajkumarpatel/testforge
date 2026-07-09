@@ -1,0 +1,35 @@
+# Docker ignore — keeps image lean by excluding dev-only files
+node_modules/
+.git/
+.gitignore
+.github/
+.eslintrc.js
+.eslintignore
+.prettierrc
+.prettierignore
+
+# Logs and local runtime state
+logs/
+server/logs/
+*.log
+client.log
+server.log
+
+# Environment files (injected at runtime via docker-compose env_file)
+.env
+.env.*
+!.env.example
+
+# Dev/test artifacts
+client/node_modules/
+server/node_modules/
+coverage/
+jest.config.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docs don't need to be in the image
+docs/
+README.md
