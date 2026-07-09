@@ -597,24 +597,39 @@ function registerLlmRoutes(app) {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    const send = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`);
+    const send = (obj) => {
+      if (!res.writableEnded) {
+        try {
+          res.write(`data: ${JSON.stringify(obj)}\n\n`);
+        } catch {
+          /* ignore connection reset */
+        }
+      }
+    };
 
-    const usage = await provider.generate({
-      systemPrompt: systemPrompt || "",
-      userMessage,
-      model: model || provider.defaultModel,
-      ...providerConfig,
-      onChunk(text) {
-        send({ type: "chunk", text });
-      },
-      onError(msg) {
-        send({ type: "error", message: msg });
+    try {
+      const usage = await provider.generate({
+        systemPrompt: systemPrompt || "",
+        userMessage,
+        model: model || provider.defaultModel,
+        ...providerConfig,
+        onChunk(text) {
+          send({ type: "chunk", text });
+        },
+        onError(msg) {
+          send({ type: "error", message: msg });
+          if (!res.writableEnded) res.end();
+        },
+      });
+
+      if (!res.writableEnded) {
+        send({ type: "done", usage });
         res.end();
-      },
-    });
-
-    send({ type: "done", usage });
-    if (!res.writableEnded) res.end();
+      }
+    } catch (err) {
+      send({ type: "error", message: err.message });
+      if (!res.writableEnded) res.end();
+    }
   });
 }
 

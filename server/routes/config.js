@@ -19,13 +19,17 @@ router.get("/config", (req, res) => {
   try {
     // .env.example lives at project root (two levels up from server/routes/)
     envExample = fs.readFileSync(path.join(__dirname, "../../.env.example"), "utf-8");
-  } catch { /* optional file */ }
+  } catch {
+    /* optional file */
+  }
 
   let version = "2.0.0";
   try {
     const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json"), "utf-8"));
     version = pkg.version || version;
-  } catch { /* fallback to hardcoded */ }
+  } catch {
+    /* fallback to hardcoded */
+  }
 
   const isSecretField = (field) => field.type === "password" || field.key === "apiKey";
 

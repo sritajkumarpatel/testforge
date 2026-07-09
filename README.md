@@ -161,8 +161,6 @@ opencode .
 
 ---
 
-
-
 ## Screenshots
 
 Below is a conceptual layout of the TestForge dashboard:

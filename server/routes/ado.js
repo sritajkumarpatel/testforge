@@ -108,7 +108,7 @@ router.post("/run", async (req, res) => {
   for (let i = 0; i < scenarios.length; i++) {
     const tc = scenarios[i];
     const adoApiUrl = `https://dev.azure.com/${encodeURIComponent(org)}/${encodeURIComponent(project)}/_apis/wit/workitems/$Test%20Case?api-version=7.1`;
-    const payload = buildTestCasePayload(tc.title, tc.steps, tc.tags);
+    const payload = buildTestCasePayload(tc.title, tc.steps, tc.tags, tc);
 
     try {
       const result = await page.evaluate(
@@ -127,14 +127,36 @@ router.post("/run", async (req, res) => {
 
       if (result.status === 200 || result.status === 201) {
         totalCreated++;
-        send({ type: "case-done", index: i, title: tc.title, id: result.id, adoUrl: result.adoUrl, status: "created", tags: tc.tags || [] });
+        send({
+          type: "case-done",
+          index: i,
+          title: tc.title,
+          id: result.id,
+          adoUrl: result.adoUrl,
+          status: "created",
+          tags: tc.tags || [],
+        });
       } else {
         totalFailed++;
-        send({ type: "case-done", index: i, title: tc.title, status: "failed", httpStatus: result.status, tags: tc.tags || [] });
+        send({
+          type: "case-done",
+          index: i,
+          title: tc.title,
+          status: "failed",
+          httpStatus: result.status,
+          tags: tc.tags || [],
+        });
       }
     } catch (err) {
       totalFailed++;
-      send({ type: "case-done", index: i, title: tc.title, status: "error", error: err.message, tags: tc.tags || [] });
+      send({
+        type: "case-done",
+        index: i,
+        title: tc.title,
+        status: "error",
+        error: err.message,
+        tags: tc.tags || [],
+      });
     }
 
     await page.waitForTimeout(config.adoCreationDelayMs);
@@ -143,7 +165,11 @@ router.post("/run", async (req, res) => {
   send({ type: "done", totalCreated, totalFailed });
 
   if (!config.chrome.keepOpen) {
-    try { await browser.close(); } catch { logger.warn("Failed to close browser"); }
+    try {
+      await browser.close();
+    } catch {
+      logger.warn("Failed to close browser");
+    }
   }
   res.end();
 });
@@ -180,7 +206,7 @@ router.post("/run-pat", async (req, res) => {
 
   for (let i = 0; i < scenarios.length; i++) {
     const tc = scenarios[i];
-    const payload = buildTestCasePayload(tc.title, tc.steps, tc.tags);
+    const payload = buildTestCasePayload(tc.title, tc.steps, tc.tags, tc);
 
     try {
       const r = await fetch(createUrl, {
@@ -192,14 +218,36 @@ router.post("/run-pat", async (req, res) => {
 
       if (r.status === 200 || r.status === 201) {
         totalCreated++;
-        send({ type: "case-done", index: i, title: tc.title, id: body.id, adoUrl: body._links?.html?.href, status: "created", tags: tc.tags || [] });
+        send({
+          type: "case-done",
+          index: i,
+          title: tc.title,
+          id: body.id,
+          adoUrl: body._links?.html?.href,
+          status: "created",
+          tags: tc.tags || [],
+        });
       } else {
         totalFailed++;
-        send({ type: "case-done", index: i, title: tc.title, status: "failed", httpStatus: r.status, tags: tc.tags || [] });
+        send({
+          type: "case-done",
+          index: i,
+          title: tc.title,
+          status: "failed",
+          httpStatus: r.status,
+          tags: tc.tags || [],
+        });
       }
     } catch (err) {
       totalFailed++;
-      send({ type: "case-done", index: i, title: tc.title, status: "error", error: err.message, tags: tc.tags || [] });
+      send({
+        type: "case-done",
+        index: i,
+        title: tc.title,
+        status: "error",
+        error: err.message,
+        tags: tc.tags || [],
+      });
     }
 
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -244,7 +292,11 @@ router.post("/fetch-work-item", async (req, res) => {
     });
   } finally {
     if (browser && !config.chrome.keepOpen) {
-      try { await browser.close(); } catch { /* ignore */ }
+      try {
+        await browser.close();
+      } catch {
+        /* ignore */
+      }
     }
   }
 });

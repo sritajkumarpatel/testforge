@@ -91,8 +91,12 @@ router.post("/run", pipelineRateLimiter, async (req, res) => {
         userMessage,
         model,
         ...providerConfig,
-        onChunk(text) { if (text) onChunk(text); },
-        onError(msg) { onError(msg); },
+        onChunk(text) {
+          if (text) onChunk(text);
+        },
+        onError(msg) {
+          onError(msg);
+        },
       });
     },
   });

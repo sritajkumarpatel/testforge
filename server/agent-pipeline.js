@@ -430,7 +430,14 @@ async function runOrchestratedPipeline({
   const analystRun = await callAgent({
     send,
     agentId: "requirements-analyst",
-    userMessage: `Analyze the following input and produce the structured requirements summary:\n\n${userInput}`,
+    userMessage: `Metadata Context:
+- Requirement ID: ${metadata.requirementId || ""}
+- Work Item ID / Ticket Number: ${metadata.ticketNumber || ""}
+- Ticket Title: ${metadata.ticketTitle || ""}
+
+Analyze the following input and produce the structured requirements summary:
+
+${userInput}`,
     callLlm,
     mode,
   });
@@ -588,7 +595,14 @@ async function runOrchestratedPipeline({
   const writerRun = await callAgent({
     send,
     agentId: "test-case-writer",
-    userMessage: `Convert the following specialist test scenarios into a single ADO-ready JSON array of test cases.\n\n${aggregateContext}`,
+    userMessage: `Metadata Context:
+- Requirement ID: ${metadata.requirementId || ""}
+- Work Item ID / Ticket Number: ${metadata.ticketNumber || ""}
+- Ticket Title: ${metadata.ticketTitle || ""}
+
+Convert the following specialist test scenarios into a single ADO-ready JSON array of test cases.
+
+${aggregateContext}`,
     callLlm,
     mode,
   });
