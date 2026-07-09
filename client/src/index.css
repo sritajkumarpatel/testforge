@@ -5,25 +5,25 @@
 
 :root {
   /* ── Light Mode — Premium Creamy Pastel Enterprise Colors ────────────── */
-  --md-primary: #3b82f6;           /* Corporate Pastel Blue */
+  --md-primary: #3b82f6; /* Corporate Pastel Blue */
   --md-primary-dark: #2563eb;
   --md-primary-container: rgba(59, 130, 246, 0.08);
   --md-on-primary: #ffffff;
-  --md-secondary: #ea580c;         /* Warm Orange Accent */
+  --md-secondary: #ea580c; /* Warm Orange Accent */
   --md-secondary-dark: #ca8a04;
   --md-secondary-container: rgba(234, 88, 12, 0.08);
   --md-on-secondary: #ffffff;
-  --md-surface: #ffffff;           /* Clean White Card Surface */
-  --md-surface-variant: #f8fafc;   /* Soft Ice Blue-Gray */
+  --md-surface: #ffffff; /* Clean White Card Surface */
+  --md-surface-variant: #f8fafc; /* Soft Ice Blue-Gray */
   --md-surface-2: #f1f5f9;
-  --md-background: #fdfdfb;        /* Creamy Warm Alabaster */
-  --md-on-background: #1e293b;     /* Deep Slate Text */
+  --md-background: #fdfdfb; /* Creamy Warm Alabaster */
+  --md-on-background: #1e293b; /* Deep Slate Text */
   --md-on-surface: #1e293b;
-  --md-on-surface-variant: #64748b;/* Muted Slate Text */
+  --md-on-surface-variant: #64748b; /* Muted Slate Text */
   --md-outline: rgba(0, 0, 0, 0.08);
   --md-outline-variant: rgba(0, 0, 0, 0.05);
-  --md-error: #ef4444;             /* Coral Red */
-  --md-success: #10b981;           /* Emerald Green */
+  --md-error: #ef4444; /* Coral Red */
+  --md-success: #10b981; /* Emerald Green */
 
   /* ── Backward Compatibility Aliases ───────────────────────────────────── */
   --bg: var(--md-background);
@@ -245,17 +245,23 @@ a:hover {
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-md);
   overflow: hidden;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .card-emphasis {
   border-left: 4px solid var(--border);
-  transition: border-left-color 0.3s, box-shadow 0.3s;
+  transition:
+    border-left-color 0.3s,
+    box-shadow 0.3s;
 }
 
 .card-emphasis.active {
   border-left-color: var(--md-secondary);
-  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.06), var(--shadow-md);
+  box-shadow:
+    0 4px 16px rgba(234, 88, 12, 0.06),
+    var(--shadow-md);
 }
 
 .card-emphasis.done {
@@ -439,7 +445,9 @@ select,
   color: var(--text);
   width: 100%;
   box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 input:focus,
@@ -467,7 +475,9 @@ textarea {
   border-radius: var(--radius);
   padding: 20px;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
   background: rgba(59, 130, 246, 0.01);
   display: flex;
   align-items: center;
@@ -737,11 +747,24 @@ textarea {
   color: #e2e8f0;
 }
 
-.log-system { color: #94a3b8; font-style: italic; }
-.log-agent { color: #a5b4fc; font-weight: bold; }
-.log-done { color: var(--md-success); }
-.log-error { color: var(--md-error); font-weight: bold; }
-.log-stream { color: #93c5fd; }
+.log-system {
+  color: #94a3b8;
+  font-style: italic;
+}
+.log-agent {
+  color: #a5b4fc;
+  font-weight: bold;
+}
+.log-done {
+  color: var(--md-success);
+}
+.log-error {
+  color: var(--md-error);
+  font-weight: bold;
+}
+.log-stream {
+  color: #93c5fd;
+}
 
 .ado-hint {
   font-size: 13px;
@@ -864,9 +887,17 @@ textarea {
   display: inline-block;
 }
 
-.ado-badge-pending { color: var(--text-muted); }
-.ado-badge-created { color: var(--md-success); font-weight: 600; }
-.ado-badge-failed { color: var(--md-error); font-weight: 600; }
+.ado-badge-pending {
+  color: var(--text-muted);
+}
+.ado-badge-created {
+  color: var(--md-success);
+  font-weight: 600;
+}
+.ado-badge-failed {
+  color: var(--md-error);
+  font-weight: 600;
+}
 
 .app-footer {
   border-top: 1px solid var(--border);
@@ -903,8 +934,12 @@ textarea {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .ado-env-example {

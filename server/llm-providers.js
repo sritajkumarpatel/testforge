@@ -532,12 +532,12 @@ function registerLlmRoutes(app) {
     let envExample = "";
     try {
       envExample = fs.readFileSync(path.join(__dirname, ".env.example"), "utf-8");
-    } catch { }
+    } catch {}
     let version = "2.0.0";
     try {
       const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "package.json"), "utf-8"));
       version = pkg.version || version;
-    } catch { }
+    } catch {}
 
     const isSecretField = (field) => field.type === "password" || field.key === "apiKey";
 

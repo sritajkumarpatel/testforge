@@ -54,8 +54,10 @@ export default function AgentResults({
     if (activeLogTab === 'all') return true;
     if (activeLogTab === 'analyst') return log.agentId === 'requirements-analyst';
     if (activeLogTab === 'classifier') return log.agentId === 'classifier';
-    if (activeLogTab === 'designer') return ['ui-agent', 'api-agent', 'mock-agent'].includes(log.agentId);
-    if (activeLogTab === 'writer') return ['test-case-writer', 'test-case-writer-bdd'].includes(log.agentId);
+    if (activeLogTab === 'designer')
+      return ['ui-agent', 'api-agent', 'mock-agent'].includes(log.agentId);
+    if (activeLogTab === 'writer')
+      return ['test-case-writer', 'test-case-writer-bdd'].includes(log.agentId);
     return true;
   });
 
@@ -98,11 +100,17 @@ export default function AgentResults({
           <div className="agent-console" ref={consoleRef}>
             {filteredLogs.length === 0 && (
               <div style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: 80 }}>
-                {agentsRunning ? 'Awakening agents...' : 'Console output will stream here during run.'}
+                {agentsRunning
+                  ? 'Awakening agents...'
+                  : 'Console output will stream here during run.'}
               </div>
             )}
             {filteredLogs.map((log, i) => (
-              <div key={i} className={log.type ? `log-${log.type}` : ''} style={{ marginBottom: 4 }}>
+              <div
+                key={i}
+                className={log.type ? `log-${log.type}` : ''}
+                style={{ marginBottom: 4 }}
+              >
                 {log.message && <span>{log.message}</span>}
                 {log.type === 'stream' && log.text && (
                   <span style={{ color: '#818cf8', opacity: 0.9 }}>{log.text}</span>
@@ -129,16 +137,25 @@ export default function AgentResults({
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
             {runId && (
               <button className="btn btn-outline btn-sm" onClick={onExportLog}>
-                <span className="material-icons" style={{ fontSize: 16 }}>article</span> Export Log
+                <span className="material-icons" style={{ fontSize: 16 }}>
+                  article
+                </span>{' '}
+                Export Log
               </button>
             )}
             {hasContent && (
               <button className="btn btn-outline btn-sm" onClick={downloadJson}>
-                <span className="material-icons" style={{ fontSize: 16 }}>download</span> Download JSON
+                <span className="material-icons" style={{ fontSize: 16 }}>
+                  download
+                </span>{' '}
+                Download JSON
               </button>
             )}
             <button className="btn btn-outline btn-sm" onClick={() => fileRef.current?.click()}>
-              <span className="material-icons" style={{ fontSize: 16 }}>upload</span> Upload JSON
+              <span className="material-icons" style={{ fontSize: 16 }}>
+                upload
+              </span>{' '}
+              Upload JSON
             </button>
             <input
               ref={fileRef}
@@ -163,7 +180,10 @@ export default function AgentResults({
           </div>
           <div className="ado-parse-row">
             <button className="btn btn-outline btn-sm" onClick={() => onParse?.(jsonOutput)}>
-              <span className="material-icons" style={{ fontSize: 16 }}>checklist</span> Parse &amp; Validate
+              <span className="material-icons" style={{ fontSize: 16 }}>
+                checklist
+              </span>{' '}
+              Parse &amp; Validate
             </button>
             <span className={`ado-parse-status${parseStatusClass ? ` ${parseStatusClass}` : ''}`}>
               {parseStatus || 'Paste or generate JSON above, then click Parse & Validate.'}

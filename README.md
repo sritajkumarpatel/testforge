@@ -49,14 +49,14 @@ No manual test writing. No tedious copy-paste into ADO. Just your requirements +
 Requirements ──> [Requirements Analyst] ──> [Classifier] ──> [UI / API / Mock Designers] ──> [Test Case Writer] ──> ADO Test Cases
 ```
 
-| Agent | Role | Specialism | Prompt File |
-| :--- | :--- | :--- | :--- |
-| **Requirements Analyst** | Parses raw input into structured functional requirements | NLP extraction, ambiguity detection, gap analysis | [01-requirements-analyst.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/01-requirements-analyst.md) |
-| **Classifier** | Decides whether the requirement is UI, API, Mock, or mixed | Requirement-type routing | [00-classifier.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/00-classifier.md) |
-| **UI Test Designer** | Designs UI/UX scenarios | Forms, navigation, validation, accessibility, responsive behavior | [02-ui-designer.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/02-ui-designer.md) |
-| **API Test Designer** | Designs API scenarios | HTTP contracts, auth, status codes, schema, rate limits | [02-api-designer.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/02-api-designer.md) |
-| **Mock Designer** | Provides mock/stub guidelines | External dependency simulation, contract testing | [02-mock-designer.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/02-mock-designer.md) |
-| **Test Case Writer** | Produces a JSON array of ADO-ready test case objects | Step-by-step actions, BDD/Gherkin formatting | [03-test-case-writer.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/03-test-case-writer.md), [03-test-case-writer-bdd.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/03-test-case-writer-bdd.md) |
+| Agent                    | Role                                                       | Specialism                                                        | Prompt File                                                                                                                                                                                                                |
+| :----------------------- | :--------------------------------------------------------- | :---------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Requirements Analyst** | Parses raw input into structured functional requirements   | NLP extraction, ambiguity detection, gap analysis                 | [01-requirements-analyst.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/01-requirements-analyst.md)                                                                                                           |
+| **Classifier**           | Decides whether the requirement is UI, API, Mock, or mixed | Requirement-type routing                                          | [00-classifier.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/00-classifier.md)                                                                                                                               |
+| **UI Test Designer**     | Designs UI/UX scenarios                                    | Forms, navigation, validation, accessibility, responsive behavior | [02-ui-designer.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/02-ui-designer.md)                                                                                                                             |
+| **API Test Designer**    | Designs API scenarios                                      | HTTP contracts, auth, status codes, schema, rate limits           | [02-api-designer.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/02-api-designer.md)                                                                                                                           |
+| **Mock Designer**        | Provides mock/stub guidelines                              | External dependency simulation, contract testing                  | [02-mock-designer.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/02-mock-designer.md)                                                                                                                         |
+| **Test Case Writer**     | Produces a JSON array of ADO-ready test case objects       | Step-by-step actions, BDD/Gherkin formatting                      | [03-test-case-writer.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/03-test-case-writer.md), [03-test-case-writer-bdd.md](file:///Users/zenitsu/Documents/GitHub/testforge/agents/03-test-case-writer-bdd.md) |
 
 Each agent receives the full output of the previous agent, building context sequentially. Supports both **Regular (Standard steps)** and **BDD (Gherkin/Given-When-Then)** test formats.
 
@@ -65,27 +65,46 @@ Each agent receives the full output of the previous agent, building context sequ
 ## Features
 
 ### Input & Pipeline
-* **3 Input Modes**: Upload files (PDF, Word, Markdown, plain text), fetch description from an ADO work item directly, or paste text.
-* **Streaming Pipeline**: Watch each agent reason in real time via Server-Sent Events (SSE).
-* **Regular + BDD Output**: Select BDD mode to generate test steps formatted in Given-When-Then Gherkin syntax.
-* **Run Log Export**: Download execution logs as `.txt` or `.json` for debugging or records.
+
+- **3 Input Modes**: Upload files (PDF, Word, Markdown, plain text), fetch description from an ADO work item directly, or paste text.
+- **Streaming Pipeline**: Watch each agent reason in real time via Server-Sent Events (SSE).
+- **Regular + BDD Output**: Select BDD mode to generate test steps formatted in Given-When-Then Gherkin syntax.
+- **Run Log Export**: Download execution logs as `.txt` or `.json` for debugging or records.
 
 ### Azure DevOps Integration
-* **One-Click ADO Creation (CDP)**: Connects to your browser session via Chrome/Edge DevTools Protocol (CDP) — no Personal Access Token (PAT) required. Uses existing active browser authentication context automatically.
-* **ADO PAT Support**: Alternatively, specify a PAT (`ADO_PAT`) to run bulk operations headlessly without browser interaction.
-* **Bulk Creation**: Test cases are pushed in parallel to Azure DevOps as rich work items, attaching steps, title, and technique tags.
+
+- **One-Click ADO Creation (CDP)**: Connects to your browser session via Chrome/Edge DevTools Protocol (CDP) — no Personal Access Token (PAT) required. Uses existing active browser authentication context automatically.
+- **ADO PAT Support**: Alternatively, specify a PAT (`ADO_PAT`) to run bulk operations headlessly without browser interaction.
+- **Bulk Creation**: Test cases are pushed in parallel to Azure DevOps as rich work items, attaching steps, title, and technique tags.
 
 ### Enterprise Security & Architecture
-* **API Protection**: Optional API authorization wrapper using `AUTH_TOKEN` bearer validation.
-* **Rate Limiting**: Built-in protection against API abuse using `express-rate-limit` for both general routes and LLM pipeline runs.
-* **State Persistence**: Form input, selected options, settings, and agent console logs survive tab refreshes and accidental navigations.
+
+- **API Protection**: Optional API authorization wrapper using `AUTH_TOKEN` bearer validation.
+- **Rate Limiting**: Built-in protection against API abuse using `express-rate-limit` for both general routes and LLM pipeline runs.
+- **State Persistence**: Form input, selected options, settings, and agent console logs survive tab refreshes and accidental navigations.
 
 ---
 
 ## Quick Start
 
-### Option 1: AI Agent Setup (Recommended)
+### Option 1: Docker (Recommended for Production)
+
+```bash
+git clone https://github.com/sritajkumarpatel/testforge.git
+cd testforge
+cp .env.example .env
+# Edit .env with your LLM API key(s) and ADO settings
+docker compose up --build
+```
+
+Open **http://localhost:3010** in your browser.
+
+---
+
+### Option 2: AI Agent Setup
+
 Open the repo with your AI coding agent (e.g., Claude, Antigravity, or Copilot):
+
 ```bash
 git clone https://github.com/sritajkumarpatel/testforge.git
 cd testforge
@@ -93,58 +112,56 @@ opencode .
 # then say: "Set up and run TestForge"
 ```
 
-### Option 2: Manual Setup
+---
+
+### Option 3: Manual Local Development
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/sritajkumarpatel/testforge.git
    cd testforge
    ```
 
-2. **Install dependencies**:
-   Install root server dependencies, then install frontend client dependencies:
+2. **Install all dependencies** (installs both server and client workspaces):
+
    ```bash
-   # Install server deps
    npm install
-   
-   # Install client deps
-   cd client && npm install
-   cd ..
    ```
 
 3. **Configure environment variables**:
-   Create a `.env` file from the example template:
+
    ```bash
    cp .env.example .env
    ```
-   Open `.env` and fill in your keys (e.g., Anthropic Claude, OpenAI, Gemini, or Ollama URL).
 
-4. **Launch the application**:
-   * **For Development (Hot-Reloading)**:
-     Start the backend server:
-     ```bash
-     # From root directory
-     npm run dev
-     ```
-     Start the Vite dev server (runs on port `5173` and proxies `/api` to backend):
-     ```bash
-     # From client directory
-     cd client && npm run dev
-     ```
-     Open your browser to **http://localhost:5173**.
-     
-   * **For Production (Built Bundle)**:
-     Build the React frontend assets and start the integrated Express server:
-     ```bash
-     # From client directory
-     npm run build
-     # Return to root directory and start
-     cd ..
-     npm start
-     ```
-     Open **http://localhost:3010** in your browser.
+   Open `.env` and set at least one LLM provider key (e.g., `OPENAI_API_KEY`, `CLAUDE_API_KEY`, or `GOOGLE_API_KEY`). For local inference, configure `OLLAMA_URL`.
+
+4. **Launch the application** (two terminal windows):
+
+   ```bash
+   # Terminal 1 — backend (port 3010, hot-reloads on save)
+   npm run dev:server
+
+   # Terminal 2 — frontend (port 5173, proxies /api to backend)
+   npm run dev:client
+   ```
+
+   Open **http://localhost:5173** in your browser.
+
+   **For production bundle:**
+
+   ```bash
+   # Build client and start integrated server
+   npm run build --workspace=client
+   npm start
+   ```
+
+   Open **http://localhost:3010** in your browser.
 
 ---
+
+
 
 ## Screenshots
 
@@ -178,47 +195,47 @@ TestForge is highly configurable via environment variables in the `.env` file. A
 
 ### Server & System Configurations
 
-| Variable | Default | Required For / Description |
-| :--- | :--- | :--- |
-| `PORT` | `3010` | Port the Express server listens on. |
-| `AUTH_TOKEN` | — | Secure all `/api/*` endpoints. Client must supply `Authorization: Bearer <AUTH_TOKEN>`. |
-| `LOG_LEVEL` | `info` | Logger severity limit (`trace`, `debug`, `info`, `warn`, `error`, `fatal`, `silent`). |
-| `MAX_JSON_BODY_SIZE`| `2mb` | Maximum JSON request payload size accepted. |
-| `MAX_FILE_SIZE` | `10485760` (10MB) | Max size in bytes allowed for document file uploads. |
-| `LOGS_DIR` | `logs` | Folder directory relative to root to store persisted JSON audit run logs. |
-| `PIPELINE_RATE_LIMIT_MAX` | `10` | Rate limit: maximum orchestrated pipeline executions per minute per IP. |
-| `GENERAL_RATE_LIMIT_MAX`  | `60` | Rate limit: maximum overall API requests per minute per IP. |
+| Variable                  | Default           | Required For / Description                                                              |
+| :------------------------ | :---------------- | :-------------------------------------------------------------------------------------- |
+| `PORT`                    | `3010`            | Port the Express server listens on.                                                     |
+| `AUTH_TOKEN`              | —                 | Secure all `/api/*` endpoints. Client must supply `Authorization: Bearer <AUTH_TOKEN>`. |
+| `LOG_LEVEL`               | `info`            | Logger severity limit (`trace`, `debug`, `info`, `warn`, `error`, `fatal`, `silent`).   |
+| `MAX_JSON_BODY_SIZE`      | `2mb`             | Maximum JSON request payload size accepted.                                             |
+| `MAX_FILE_SIZE`           | `10485760` (10MB) | Max size in bytes allowed for document file uploads.                                    |
+| `LOGS_DIR`                | `logs`            | Folder directory relative to root to store persisted JSON audit run logs.               |
+| `PIPELINE_RATE_LIMIT_MAX` | `10`              | Rate limit: maximum orchestrated pipeline executions per minute per IP.                 |
+| `GENERAL_RATE_LIMIT_MAX`  | `60`              | Rate limit: maximum overall API requests per minute per IP.                             |
 
 ### AI Pipeline Configuration
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `AGENT_TIMEOUT_MS` | `60000` (60s) | Max milliseconds allowed for each agent's LLM generation request. |
-| `AGENT_MAX_RETRIES` | `2` | Maximum retry attempts if an LLM invocation fails. |
-| `MAX_INPUT_LENGTH` | `50000` | Max character length allowed for raw text requirement input. |
-| `MAX_SYSTEM_PROMPT_LENGTH`| `100000` | Max characters permitted for combined system prompts. |
+| Variable                   | Default       | Description                                                       |
+| :------------------------- | :------------ | :---------------------------------------------------------------- |
+| `AGENT_TIMEOUT_MS`         | `60000` (60s) | Max milliseconds allowed for each agent's LLM generation request. |
+| `AGENT_MAX_RETRIES`        | `2`           | Maximum retry attempts if an LLM invocation fails.                |
+| `MAX_INPUT_LENGTH`         | `50000`       | Max character length allowed for raw text requirement input.      |
+| `MAX_SYSTEM_PROMPT_LENGTH` | `100000`      | Max characters permitted for combined system prompts.             |
 
 ### Azure DevOps & Chrome (CDP) Configurations
 
-| Variable | Default | Description |
-| :--- | :--- | :--- |
-| `ADO_ORG` | — | Pre-fills Azure DevOps organization name in settings. |
-| `ADO_PROJECT` | — | Pre-fills Azure DevOps project name in settings. |
-| `ADO_PAT` | — | Azure DevOps Personal Access Token (for programmatic `/api/ado/run-pat` test case push). |
-| `CHROME_PATH` | *Auto-detected* | Custom filesystem path to the Chrome/Edge browser binary executable. |
-| `CHROME_CDP_PORT` | `9222` | Port to hook into browser session via Chrome DevTools Protocol. |
-| `KEEP_CHROME_OPEN` | `false` | Keep debug browser window open after completing the test case push. |
-| `ADO_CREATION_DELAY_MS` | `300` | Delay in milliseconds between consecutive work item creation requests (prevents ADO rate issues). |
+| Variable                | Default         | Description                                                                                       |
+| :---------------------- | :-------------- | :------------------------------------------------------------------------------------------------ |
+| `ADO_ORG`               | —               | Pre-fills Azure DevOps organization name in settings.                                             |
+| `ADO_PROJECT`           | —               | Pre-fills Azure DevOps project name in settings.                                                  |
+| `ADO_PAT`               | —               | Azure DevOps Personal Access Token (for programmatic `/api/ado/run-pat` test case push).          |
+| `CHROME_PATH`           | _Auto-detected_ | Custom filesystem path to the Chrome/Edge browser binary executable.                              |
+| `CHROME_CDP_PORT`       | `9222`          | Port to hook into browser session via Chrome DevTools Protocol.                                   |
+| `KEEP_CHROME_OPEN`      | `false`         | Keep debug browser window open after completing the test case push.                               |
+| `ADO_CREATION_DELAY_MS` | `300`           | Delay in milliseconds between consecutive work item creation requests (prevents ADO rate issues). |
 
 ### LLM Providers Configuration
 
-| Provider | Variable | Default Model | Key / Endpoint Setup |
-| :--- | :--- | :--- | :--- |
-| **Ollama (Local)** | `OLLAMA_URL` | `llama3.2` | Defaults: URL `http://localhost:11434`, model `llama3.2` |
-| **OpenAI** | `OPENAI_API_KEY` | `gpt-4o` | Get key at [platform.openai.com](https://platform.openai.com) |
-| **Anthropic Claude** | `CLAUDE_API_KEY` | `claude-sonnet-4-20250514` | Get key at [console.anthropic.com](https://console.anthropic.com) |
-| **Google Gemini** | `GOOGLE_API_KEY` | `gemini-2.0-flash` | Get key at [aistudio.google.com](https://aistudio.google.com) |
-| **OpenCode** | `OPENCODE_API_KEY` | `deepseek-v4-flash-free` | API endpoint `https://api.opencode.ai/v1` via `OPENCODE_URL` |
+| Provider             | Variable           | Default Model              | Key / Endpoint Setup                                              |
+| :------------------- | :----------------- | :------------------------- | :---------------------------------------------------------------- |
+| **Ollama (Local)**   | `OLLAMA_URL`       | `llama3.2`                 | Defaults: URL `http://localhost:11434`, model `llama3.2`          |
+| **OpenAI**           | `OPENAI_API_KEY`   | `gpt-4o`                   | Get key at [platform.openai.com](https://platform.openai.com)     |
+| **Anthropic Claude** | `CLAUDE_API_KEY`   | `claude-sonnet-4-20250514` | Get key at [console.anthropic.com](https://console.anthropic.com) |
+| **Google Gemini**    | `GOOGLE_API_KEY`   | `gemini-2.0-flash`         | Get key at [aistudio.google.com](https://aistudio.google.com)     |
+| **OpenCode**         | `OPENCODE_API_KEY` | `deepseek-v4-flash-free`   | API endpoint `https://api.opencode.ai/v1` via `OPENCODE_URL`      |
 
 ---
 
@@ -227,13 +244,15 @@ TestForge is highly configurable via environment variables in the `.env` file. A
 TestForge can be operated programmatically. All API endpoints support the optional `Authorization` header if `AUTH_TOKEN` is configured.
 
 ### General & Setup Routes
-* **`GET /health`** / **`GET /ready`**: System health and writable logs status checks.
-* **`GET /api/config`**: Fetches environment config statuses, supported LLM providers, and settings schema.
-* **`GET /api/agents`**: Returns a list of active agent prompt personas.
+
+- **`GET /health`** / **`GET /ready`**: System health and writable logs status checks.
+- **`GET /api/config`**: Fetches environment config statuses, supported LLM providers, and settings schema.
+- **`GET /api/agents`**: Returns a list of active agent prompt personas.
 
 ### Pipeline Execution
-* **`POST /api/agents/run`**: Begins the orchestrated agent pipeline using SSE.
-  * **Payload**:
+
+- **`POST /api/agents/run`**: Begins the orchestrated agent pipeline using SSE.
+  - **Payload**:
     ```json
     {
       "input": "User requirements text here",
@@ -242,18 +261,20 @@ TestForge can be operated programmatically. All API endpoints support the option
       "mode": "regular"
     }
     ```
-* **`GET /api/agents/run/:runId/status`**: Get status/summary details of pipeline output by `runId`.
-* **`GET /api/agents/run/:runId/export`**: Export structured run logs as plain text.
+- **`GET /api/agents/run/:runId/status`**: Get status/summary details of pipeline output by `runId`.
+- **`GET /api/agents/run/:runId/export`**: Export structured run logs as plain text.
 
 ### Azure DevOps Actions
-* **`POST /api/ado/launch-chrome`**: Launch Chrome in debug mode (port 9222) preloaded to Dev DevOps portal URL.
-* **`POST /api/ado/fetch-work-item`**: Connects via CDP to fetch raw text data from an active work item.
-  * **Payload**: `{ "org": "myOrg", "project": "myProject", "id": "12345" }`
-* **`POST /api/ado/run`**: Publishes test cases using browser CDP session credentials. (SSE stream)
-* **`POST /api/ado/run-pat`**: Publishes test cases headlessly using configured server-side `ADO_PAT`. (SSE stream)
+
+- **`POST /api/ado/launch-chrome`**: Launch Chrome in debug mode (port 9222) preloaded to Dev DevOps portal URL.
+- **`POST /api/ado/fetch-work-item`**: Connects via CDP to fetch raw text data from an active work item.
+  - **Payload**: `{ "org": "myOrg", "project": "myProject", "id": "12345" }`
+- **`POST /api/ado/run`**: Publishes test cases using browser CDP session credentials. (SSE stream)
+- **`POST /api/ado/run-pat`**: Publishes test cases headlessly using configured server-side `ADO_PAT`. (SSE stream)
 
 ### Document Processing
-* **`POST /api/parse/document`**: Multi-part upload endpoint to parse text from `.pdf`, `.docx`, `.md`, or `.txt` files.
+
+- **`POST /api/parse/document`**: Multi-part upload endpoint to parse text from `.pdf`, `.docx`, `.md`, or `.txt` files.
 
 ---
 
@@ -297,7 +318,9 @@ testforge/
 Unit and integration tests are configured for both backend components (using Jest) and frontend client hooks (using Vitest).
 
 #### 1. Backend / Server Tests
+
 Executed using Jest. Includes coverage for endpoints, config parsing, and pipeline orchestration.
+
 ```bash
 # Run server test suite
 npm test
@@ -307,7 +330,9 @@ npm run test:watch
 ```
 
 #### 2. Frontend / Client Tests
+
 Executed using Vitest. Verifies rendering hooks and state selectors.
+
 ```bash
 # From client folder
 cd client
@@ -318,7 +343,9 @@ npm run test:watch
 ```
 
 ### Linting & Code Formatting
+
 We use ESLint and Prettier to enforce styling guidelines. Run these checks locally before pushing code:
+
 ```bash
 # Check code style constraints
 npm run lint
@@ -333,6 +360,7 @@ npm run format
 ## Contributing
 
 We welcome contributions to TestForge! Before submitting a pull request:
+
 1. Ensure all formatting and lint constraints pass cleanly (`npm run format:check` & `npm run lint`).
 2. Make sure both backend and frontend unit test suites pass completely (`npm test` and `cd client && npm test`).
 3. Follow the branch naming convention: `feat/amazing-feature` or `fix/critical-bug`.

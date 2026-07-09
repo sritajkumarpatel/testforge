@@ -15,7 +15,11 @@ export default function usePipeline({
   const [agentMode, setAgentMode] = useState('regular');
 
   const stripFences = (s) =>
-    s.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    s
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim();
 
   const pushLog = useCallback((type, message, text, agentId) => {
     setAgentLogs((prev) => [...prev, { type, message, text, agentId }]);
@@ -140,7 +144,12 @@ export default function usePipeline({
                   break;
 
                 case 'classifier-decision':
-                  pushLog('done', `Classifier detected: ${(ev.decision || []).join(', ') || 'none'}`, '', 'classifier');
+                  pushLog(
+                    'done',
+                    `Classifier detected: ${(ev.decision || []).join(', ') || 'none'}`,
+                    '',
+                    'classifier'
+                  );
                   if (ev.reasoning) {
                     pushLog('system', `Reasoning: ${ev.reasoning}`, '', 'classifier');
                   }
@@ -160,7 +169,10 @@ export default function usePipeline({
                       if (last && last.type === 'stream' && last.agentId === ev.agentId) {
                         return [...prev.slice(0, -1), { ...last, text: preview }];
                       }
-                      return [...prev, { type: 'stream', message: '', text: preview, agentId: ev.agentId }];
+                      return [
+                        ...prev,
+                        { type: 'stream', message: '', text: preview, agentId: ev.agentId },
+                      ];
                     });
                   }
                   break;
@@ -210,7 +222,16 @@ export default function usePipeline({
         abortRef.current = null;
       }
     },
-    [provider, agentMode, pushLog, setParsedScenarios, setPipelineStage, setAgentsRunning, abortRef, handleParse]
+    [
+      provider,
+      agentMode,
+      pushLog,
+      setParsedScenarios,
+      setPipelineStage,
+      setAgentsRunning,
+      abortRef,
+      handleParse,
+    ]
   );
 
   const exportLog = useCallback(async () => {

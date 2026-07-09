@@ -38,11 +38,21 @@ export default function PreReqStep({ config, chromeStatus, setChromeStatus }) {
           TestForge uses your browser session to create work items in Azure DevOps. Launch Chrome
           and sign into ADO before generating test cases.
         </p>
-        <div className="ado-step-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12 }}>
-          <button className="btn btn-primary btn-lg" onClick={launchChrome} style={{ width: '100%' }}>
+        <div
+          className="ado-step-row"
+          style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12 }}
+        >
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={launchChrome}
+            style={{ width: '100%' }}
+          >
             <span className="material-icons">open_in_new</span> Launch Chrome &amp; Sign In
           </button>
-          <div className={'ado-step-status' + (chromeStatus.cls ? ' ' + chromeStatus.cls : '')} style={{ fontSize: 13, textAlign: 'center', marginTop: 4 }}>
+          <div
+            className={'ado-step-status' + (chromeStatus.cls ? ' ' + chromeStatus.cls : '')}
+            style={{ fontSize: 13, textAlign: 'center', marginTop: 4 }}
+          >
             {chromeStatus.url ? (
               <span
                 dangerouslySetInnerHTML={{

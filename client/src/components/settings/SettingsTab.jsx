@@ -376,7 +376,15 @@ export default function SettingsTab({ config, setConfig, provider, setProvider }
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 24, gap: 8 }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          marginTop: 24,
+          gap: 8,
+        }}
+      >
         <button className="btn btn-primary btn-lg" onClick={saveAll} style={{ minWidth: 200 }}>
           <span className="material-icons">save</span> Save All Settings
         </button>

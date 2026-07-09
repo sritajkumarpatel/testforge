@@ -46,7 +46,9 @@ export default function CreateStep({
     }
 
     const count = parsedScenarios.length;
-    const modeDesc = config.adoPatAvailable ? 'via Personal Access Token' : 'via Browser CDP Session';
+    const modeDesc = config.adoPatAvailable
+      ? 'via Personal Access Token'
+      : 'via Browser CDP Session';
     if (
       !confirm(
         `Create ${count} test case${count !== 1 ? 's' : ''} in ${config.org}/${config.project} ${modeDesc}?`

@@ -79,7 +79,11 @@ export default function GeneratorTab(props) {
 
       <div className="workspace-grid">
         <div className="workspace-left">
-          <PreReqStep config={config} chromeStatus={chromeStatus} setChromeStatus={setChromeStatus} />
+          <PreReqStep
+            config={config}
+            chromeStatus={chromeStatus}
+            setChromeStatus={setChromeStatus}
+          />
 
           <InputSource
             config={config}
